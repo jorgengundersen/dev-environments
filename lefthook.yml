@@ -1,0 +1,24 @@
+pre-commit:
+  jobs:
+    - name: beads
+      run: BD_GIT_HOOK=1 bd hooks run pre-commit {args}
+
+prepare-commit-msg:
+  jobs:
+    - name: beads
+      run: BD_GIT_HOOK=1 bd hooks run prepare-commit-msg {args}
+
+post-checkout:
+  jobs:
+    - name: beads
+      run: BD_GIT_HOOK=1 bd hooks run post-checkout {args}
+
+post-merge:
+  jobs:
+    - name: beads
+      run: BD_GIT_HOOK=1 bd hooks run post-merge {args}
+
+pre-push:
+  jobs:
+    - name: beads
+      run: BD_GIT_HOOK=1 bd hooks run pre-push {args}

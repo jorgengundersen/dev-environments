@@ -4,3 +4,7 @@ result-*
 
 # Ignore automatically generated direnv output
 .direnv
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db

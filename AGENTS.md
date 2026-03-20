@@ -112,3 +112,4 @@ For more details, see README.md and docs/QUICKSTART.md.
 <!-- END BEADS INTEGRATION -->
 
 - use conventional commits
+- follow beads best practices

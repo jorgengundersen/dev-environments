@@ -2,6 +2,15 @@ pre-commit:
   jobs:
     - name: beads
       run: BD_GIT_HOOK=1 bd hooks run pre-commit {args}
+    - name: nixfmt
+      glob: "*.nix"
+      run: nixfmt --check {staged_files}
+    - name: statix
+      glob: "*.nix"
+      run: 'for f in {staged_files}; do statix check "$f" || exit 1; done'
+    - name: deadnix
+      glob: "*.nix"
+      run: deadnix --fail {staged_files}
 
 prepare-commit-msg:
   jobs:

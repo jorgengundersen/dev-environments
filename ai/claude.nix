@@ -1,9 +1,9 @@
 { inputs, ... }:
 {
   perSystem =
-    { system, ... }:
+    { pkgs, system, ... }:
     {
-      devShells.claude = inputs.nixpkgs.legacyPackages.${system}.mkShell {
+      devShells.claude = pkgs.mkShell {
         packages = [
           inputs.llm-agents.packages.${system}.claude-code
         ];

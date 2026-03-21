@@ -1,9 +1,9 @@
 { inputs, ... }:
 {
   perSystem =
-    { system, ... }:
+    { pkgs, system, ... }:
     {
-      devShells.beads = inputs.nixpkgs.legacyPackages.${system}.mkShell {
+      devShells.beads = pkgs.mkShell {
         packages = [
           inputs.llm-agents.packages.${system}.beads
         ];

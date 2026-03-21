@@ -1,9 +1,9 @@
 { inputs, ... }:
 {
   perSystem =
-    { system, ... }:
+    { pkgs, system, ... }:
     {
-      devShells.afk = inputs.nixpkgs.legacyPackages.${system}.mkShell {
+      devShells.afk = pkgs.mkShell {
         packages = [
           inputs.afk.packages.${system}.default
         ];

@@ -14,4 +14,12 @@ _: {
         '';
       };
     };
+
+  flake.homeModules.go = _: {
+    home.sessionVariables = {
+      GOPATH = "$HOME/go";
+      GOBIN = "$HOME/go/bin";
+    };
+    home.sessionPath = [ "$HOME/go/bin" ];
+  };
 }

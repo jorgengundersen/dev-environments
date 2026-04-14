@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1774002890,
-        "narHash": "sha256-gnKKqoyiYZ95NSdMDtxV3c8C4nMEtfbPbxTRiEswk5o=",
+        "lastModified": 1776174967,
+        "narHash": "sha256-51DO2wG2pyXCTxFmD7LGHOqsGeI9weNWsNevNsTbysw=",
         "owner": "jorgengundersen",
         "repo": "afk",
-        "rev": "018af469d0e06153ca7008b0bc8d452ba11d3601",
+        "rev": "6c689bf33e316344e0a93604aed266199080b306",
         "type": "github"
       },
       "original": {

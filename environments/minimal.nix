@@ -1,13 +1,13 @@
-_: {
+_:
+let
+  profiles = builtins.fromJSON (builtins.readFile ./profiles.json);
+in
+{
   perSystem =
     { self', pkgs, ... }:
     {
       devShells.minimal = pkgs.mkShell {
-        inputsFrom = with self'.devShells; [
-          core
-          bash
-          prompt
-        ];
+        inputsFrom = builtins.map (name: self'.devShells.${name}) profiles.minimal;
       };
     };
 }

@@ -1,19 +1,24 @@
 { config, inputs, ... }:
 let
-  homeTargets = [
-    {
-      name = "default";
-      system = "x86_64-linux";
-      username = "devuser";
-      homeDirectory = "/home/devuser";
-    }
-    {
-      name = "devuser@aarch64";
-      system = "aarch64-linux";
-      username = "devuser";
-      homeDirectory = "/home/devuser";
-    }
-  ];
+  username = builtins.getEnv "USER";
+  homeDirectory = builtins.getEnv "HOME";
+
+  homeTargets =
+    if username != "" && homeDirectory != "" then
+      [
+        {
+          name = "default";
+          system = "x86_64-linux";
+          inherit username homeDirectory;
+        }
+        {
+          name = "${username}@aarch64";
+          system = "aarch64-linux";
+          inherit username homeDirectory;
+        }
+      ]
+    else
+      [ ];
 
   mkHome =
     target:

@@ -17,17 +17,13 @@
       url = "github:jorgengundersen/afk";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    shared = {
-      url = "path:../../shared";
-      flake = false;
-    };
   };
 
   outputs =
     inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
-        (inputs.import-tree.matchNot ".*flake.*" inputs.shared)
+        (inputs.import-tree.matchNot ".*flake.*" ../../shared)
         ./home-modules.nix
         ./home.nix
         ./default.nix

@@ -33,4 +33,7 @@ Run scripts from the repository root:
 
 # update lock files while updating one input
 ./scripts/lock-environments.sh --update-input nixpkgs
+
+# full lockfile refresh (mapped to nix flake update)
+./scripts/lock-environments.sh --recreate-lock-file
 ```

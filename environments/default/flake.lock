@@ -232,21 +232,8 @@
         "home-manager": "home-manager",
         "import-tree": "import-tree",
         "llm-agents": "llm-agents",
-        "nixpkgs": "nixpkgs",
-        "shared": "shared"
+        "nixpkgs": "nixpkgs"
       }
-    },
-    "shared": {
-      "flake": false,
-      "locked": {
-        "path": "../../shared",
-        "type": "path"
-      },
-      "original": {
-        "path": "../../shared",
-        "type": "path"
-      },
-      "parent": []
     },
     "systems": {
       "locked": {

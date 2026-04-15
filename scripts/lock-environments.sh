@@ -9,6 +9,21 @@ fi
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 environments_dir="${repo_root}/environments"
 
+use_update=0
+lock_args=()
+
+for arg in "$@"; do
+  if [[ "${arg}" == "--recreate-lock-file" ]]; then
+    use_update=1
+    continue
+  fi
+  lock_args+=("${arg}")
+done
+
+if ((use_update == 1)); then
+  echo "Info: '--recreate-lock-file' is deprecated in Nix; using 'nix flake update' instead."
+fi
+
 shopt -s nullglob
 environment_dirs=("${environments_dir}"/*)
 shopt -u nullglob
@@ -28,8 +43,13 @@ for environment_dir in "${environment_dirs[@]}"; do
   locked=$((locked + 1))
   environment_name="$(basename -- "${environment_dir}")"
 
-  echo "[${locked}] nix flake lock ./environments/${environment_name} $*"
-  nix flake lock "$@" "${environment_dir}"
+  if ((use_update == 1)); then
+    echo "[${locked}] nix flake update --flake ./environments/${environment_name} ${lock_args[*]}"
+    nix flake update --flake "${environment_dir}" "${lock_args[@]}"
+  else
+    echo "[${locked}] nix flake lock ./environments/${environment_name} ${lock_args[*]}"
+    nix flake lock "${lock_args[@]}" "${environment_dir}"
+  fi
 done
 
 if ((locked == 0)); then

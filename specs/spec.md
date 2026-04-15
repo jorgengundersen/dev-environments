@@ -53,6 +53,8 @@ Composition membership is defined directly in each environment entrypoint.
 - `environments/default/default.nix` defines the module list used to build `devShells.default`.
 - Additional environments should define their own composition locally unless intentional sharing is introduced.
 
+`environments/default/default.nix` must validate composition references before building the composed shell. Missing `devShells.<name>` references are treated as configuration errors and fail with a clear message.
+
 ## Home Manager Model
 
 Home Manager is assembled per environment (not globally at repo root).
@@ -61,6 +63,8 @@ Home Manager is assembled per environment (not globally at repo root).
 - Target home configurations are declared in `environments/default/home.nix`.
 
 Home targets are parameterized as a list of `{ name, system, username, homeDirectory }` records.
+
+In `environments/default/home.nix`, `username` and `homeDirectory` are derived from `USER` and `HOME` (no repository-bound hardcoded user paths).
 
 ## Usage Contract
 

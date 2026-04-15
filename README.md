@@ -10,6 +10,8 @@ Composable development environments with shared Nix modules and environment-spec
   - environment composition (`default.nix`)
   - Home Manager assembly (`home.nix`, `home-modules.nix`)
 
+`environments/default/default.nix` includes a guard that fails with a clear error if the composed `defaultProfile` references a missing `devShells.<name>`.
+
 ## Quick Start
 
 Use the default environment flake:
@@ -40,7 +42,7 @@ nix build ./environments/default#homeConfigurations.default.activationPackage
 ./result/activate
 ```
 
-To customize user/home targets, edit `environments/default/home.nix`.
+Home targets derive `username`/`homeDirectory` from `USER` and `HOME` in `environments/default/home.nix` (no hardcoded user paths).
 
 ## Add a Module
 

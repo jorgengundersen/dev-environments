@@ -37,6 +37,7 @@ nix develop "github:jorgengundersen/dev-environments?dir=environments/default"
 - Shared module definitions live in `shared/`.
 - The default composed shell membership is defined in `environments/default/default.nix`.
 - `environments/default/default.nix` maps that membership into `devShells.default`.
+- Composition is validated in `environments/default/default.nix`; missing shell names fail fast with an explicit error.
 
 ## Home Manager
 
@@ -47,7 +48,7 @@ nix build ./environments/default#homeConfigurations.default.activationPackage
 ./result/activate
 ```
 
-Home targets (username/home directory/system) are defined in `environments/default/home.nix`.
+Home targets are defined in `environments/default/home.nix` and derive `username`/`homeDirectory` from `USER`/`HOME` instead of hardcoded paths.
 
 ## Add a new module
 

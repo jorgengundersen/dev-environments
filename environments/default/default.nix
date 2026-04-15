@@ -19,6 +19,7 @@ let
     "beads"
     "linters"
     "git"
+    "just"
     "glow"
     "typst"
     "mermaid"

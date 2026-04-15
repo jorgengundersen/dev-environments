@@ -26,6 +26,7 @@ nix develop ./environments/default#go
 nix develop ./environments/default#python
 nix develop ./environments/default#claude
 nix develop ./environments/default#playwright
+nix develop ./environments/default#just
 ```
 
 From another repo via GitHub:

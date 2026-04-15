@@ -21,6 +21,7 @@ The repo focuses on toolchains and user-space developer configuration. Container
 - `shared/shell/*.nix`
 - `shared/git/*.nix`
 - `shared/ai/*.nix`
+- `shared/docs/*.nix`
 - `shared/data/*.nix`
 - `shared/quality/*.nix`
 - `shared/utils/*.nix`

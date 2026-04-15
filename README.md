@@ -25,6 +25,7 @@ nix develop ./environments/default
 nix develop ./environments/default#go
 nix develop ./environments/default#python
 nix develop ./environments/default#claude
+nix develop ./environments/default#playwright
 ```
 
 From another repo via GitHub:
@@ -33,6 +34,26 @@ From another repo via GitHub:
 nix develop "github:jorgengundersen/dev-environments?dir=environments/default"
 nix develop "github:jorgengundersen/dev-environments?dir=environments/default#go"
 ```
+
+## Repository Scripts
+
+Maintenance scripts live in `scripts/`.
+
+- See `scripts/README.md` for conventions and available scripts.
+- Common commands:
+
+```bash
+./scripts/check-all.sh
+./scripts/lock-environments.sh
+```
+
+## Git Hooks
+
+`lefthook` runs pre-commit checks for staged files:
+
+- `nixfmt` (auto-format staged `*.nix` and restage)
+- `statix` and `deadnix` for Nix linting
+- `shellcheck` for staged `*.sh`
 
 ## Home Manager
 

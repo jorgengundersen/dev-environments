@@ -6,6 +6,7 @@ Index of reusable module domains.
 - `docs/` — documentation, diagrams, publishing/rendering tooling.
 - `languages/` — language runtimes and toolchains.
 - `quality/` — linting, formatting, scanning, and quality checks.
+- `browser/` — browser automation and browser-focused tooling.
 - `data/` — local database and data workflow tooling.
 - `git/` — git-centric workflow tooling.
 - `shell/` — shell UX and interactive shell behavior.

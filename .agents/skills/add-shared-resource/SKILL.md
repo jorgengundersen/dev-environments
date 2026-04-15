@@ -19,6 +19,8 @@ Add tool/module to `shared/` with strict domain triage.
 
 Use first match:
 
+Reference domain definitions in `shared/README.md`.
+
 1. `shared/ai/` — coding/agent/LLM CLIs.
 2. `shared/docs/` — docs, diagrams, publishing, rendering.
 3. `shared/languages/` — language runtimes/toolchains.
@@ -45,9 +47,9 @@ Create `shared/<domain>/` when at least one is true:
 
 - 2+ related tools exist or are planned,
 - current placement would overload `utils`,
-- domain needs its own README/rules.
+- domain needs first-class indexing in `shared/README.md`.
 
-If created, also add `shared/<domain>/README.md`.
+If created, also update `shared/README.md`.
 
 ## Required updates
 
@@ -55,7 +57,7 @@ After placement decision, update all relevant items:
 
 - module file path (`shared/<domain>/<tool>.nix`),
 - `environments/default/default.nix` profile list (if requested),
-- domain README(s),
+- `shared/README.md` domain index,
 - `specs/spec.md` shared-domain list if domain set changed.
 
 ## Anti-patterns
@@ -63,7 +65,7 @@ After placement decision, update all relevant items:
 1. Dumping unknown tools into `utils` without triage.
 2. Mixing AI/docs/language tooling into `utils`.
 3. Adding module file but forgetting composition updates.
-4. Creating new domain without README/spec updates.
+4. Creating new domain without shared index/spec updates.
 
 ## Hard rules
 

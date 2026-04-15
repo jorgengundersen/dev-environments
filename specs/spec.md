@@ -40,6 +40,7 @@ Current environment:
 
 - `environments/default/flake.nix`
 - `environments/default/default.nix`
+- `environments/default/bash.nix`
 - `environments/default/home-modules.nix`
 - `environments/default/home.nix`
 - `environments/default/flake.lock`
@@ -65,6 +66,18 @@ Home Manager is assembled per environment (not globally at repo root).
 Home targets are parameterized as a list of `{ name, system, username, homeDirectory }` records.
 
 In `environments/default/home.nix`, `username` and `homeDirectory` are derived from `USER` and `HOME` (no repository-bound hardcoded user paths).
+
+For the default environment, baseline Bash behavior is declared in `shared/shell/bash.nix` for broad reuse, while default-specific Bash behavior is declared in `environments/default/bash.nix`.
+
+Default Bash runtime injection contract:
+
+- `DEVENV_CONFIG_ROOT`: optional directory used to derive default source paths (default `${XDG_CONFIG_HOME:-$HOME/.config}/dev-environments`)
+- `DEVENV_BASH_SOURCES`: optional colon-separated file list to source in order
+
+When `DEVENV_BASH_SOURCES` is unset, the default source list is:
+
+- `$DEVENV_CONFIG_ROOT/default.local.sh`
+- `$DEVENV_CONFIG_ROOT/default.secrets.sh`
 
 ## Usage Contract
 

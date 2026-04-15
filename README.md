@@ -9,6 +9,7 @@ Composable development environments with shared Nix modules and environment-spec
   - `flake.nix` / `flake.lock`
   - environment composition (`default.nix`)
   - Home Manager assembly (`home.nix`, `home-modules.nix`)
+  - default-only shell behavior (`bash.nix`)
 
 `environments/default/default.nix` includes a guard that fails with a clear error if the composed `defaultProfile` references a missing `devShells.<name>`.
 
@@ -43,6 +44,18 @@ nix build ./environments/default#homeConfigurations.default.activationPackage
 ```
 
 Home targets derive `username`/`homeDirectory` from `USER` and `HOME` in `environments/default/home.nix` (no hardcoded user paths).
+
+The shared Bash module (`shared/shell/bash.nix`) carries only baseline shell policy for broad reuse.
+
+Default-only shell behavior lives in `environments/default/bash.nix` and supports runtime injection via:
+
+- `DEVENV_CONFIG_ROOT` (directory; default: `${XDG_CONFIG_HOME:-$HOME/.config}/dev-environments`)
+- `DEVENV_BASH_SOURCES` (colon-separated source file list)
+
+Default source list when `DEVENV_BASH_SOURCES` is unset:
+
+- `$DEVENV_CONFIG_ROOT/default.local.sh`
+- `$DEVENV_CONFIG_ROOT/default.secrets.sh`
 
 ## Add a Module
 

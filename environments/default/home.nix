@@ -25,6 +25,7 @@ let
     inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = inputs.nixpkgs.legacyPackages.${target.system};
       modules = builtins.attrValues config.flake.homeModules ++ [
+        ./bash.nix
         {
           home = {
             inherit (target) username homeDirectory;

@@ -2,9 +2,9 @@
 
 ## What this repo gives you
 
-- Reproducible dev environments via Nix flakes.
-- Multiple shell entrypoints (`default`, `minimal`, tool-specific shells like `go`, `python`, `claude`).
-- One lockfile at repo root (`flake.lock`) shared by all entrypoints.
+- Reusable module library under `shared/`
+- A self-contained default environment flake under `environments/default/`
+- Tool shells (`#go`, `#python`, etc.) plus a composed `default` shell
 
 ## Prerequisites
 
@@ -12,75 +12,50 @@
 
 ## Daily usage
 
-Enter full environment:
+Enter the composed default shell:
 
 ```bash
-nix develop
+nix develop ./environments/default
 ```
 
-Enter a specific environment:
+Enter a specific tool shell from the same flake:
 
 ```bash
-nix develop .#minimal
-```
-
-Enter a tool-focused shell:
-
-```bash
-nix develop .#go
-nix develop .#python
-nix develop .#neovim
+nix develop ./environments/default#go
+nix develop ./environments/default#python
+nix develop ./environments/default#neovim
 ```
 
 Use from another repo:
 
 ```bash
-nix develop github:jorgengundersen/dev-environments#minimal
+nix develop "github:jorgengundersen/dev-environments?dir=environments/default"
 ```
 
-## How environment composition works
+## Composition model
 
-- Tool/aspect shells are defined in feature files (for example `languages/go.nix`, `shell/prompt.nix`).
-- Composed environments (`default`, `minimal`) read membership from `environments/profiles.json`.
-- `default` and `minimal` are entrypoints in `environments/default.nix` and `environments/minimal.nix`.
+- Shared module definitions live in `shared/`.
+- The default composed shell membership is defined in `environments/default/default.nix`.
+- `environments/default/default.nix` maps that membership into `devShells.default`.
 
-## Build behavior (important for containers)
+## Home Manager
 
-- `nix develop .#minimal` realizes `minimal` closure.
-- It does not build `default` unless referenced.
-- Nix still evaluates the flake graph, so unrelated broken modules can fail evaluation.
-
-## Add a new tool shell
-
-1. Add a new aspect file (example: `languages/zig.nix`) with `devShells.zig`.
-2. Validate:
+Build and activate:
 
 ```bash
-nix flake check
-```
-
-3. Optional: include it in composed environments by editing `environments/profiles.json`.
-
-## Add a new composed environment
-
-1. Add profile in `environments/profiles.json` (example: `backend`).
-2. Add entrypoint file in `environments/` (example: `environments/backend.nix`) mapping profile names to `inputsFrom`.
-3. Use it:
-
-```bash
-nix develop .#backend
-```
-
-## Home Manager (optional)
-
-Build and activate exported home configuration:
-
-```bash
-nix build .#homeConfigurations.default.activationPackage
+nix build ./environments/default#homeConfigurations.default.activationPackage
 ./result/activate
 ```
 
-## Troubleshooting
+Home targets (username/home directory/system) are defined in `environments/default/home.nix`.
 
-- If a shell fails on one platform, guard unsupported packages with `lib.optionals`/`lib.mkIf` in the relevant module.
-- If Nix says a new file is not tracked, `git add` it so flake evaluation can see it.
+## Add a new module
+
+1. Add a new file under `shared/` (example: `shared/languages/zig.nix`) with `devShells.zig`.
+2. Optional: add `flake.homeModules.zig` in the same file.
+3. If you want it in the composed shell, add `zig` to `environments/default/default.nix`.
+4. Validate:
+
+```bash
+nix flake check ./environments/default
+```

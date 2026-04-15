@@ -1,162 +1,55 @@
 # dev-environments
 
-Composable, reproducible development environments using Nix flakes, flake-parts, import-tree, and Home Manager following the dendritic pattern.
+Composable development environments with shared Nix modules and environment-specific flake entrypoints.
+
+## Current Layout
+
+- `shared/` contains reusable composable modules (`devShells.<name>` and optional `flake.homeModules.<name>`).
+- `environments/default/` is the default environment entrypoint and owns:
+  - `flake.nix` / `flake.lock`
+  - environment composition (`default.nix`)
+  - Home Manager assembly (`home.nix`, `home-modules.nix`)
 
 ## Quick Start
 
-```bash
-# Enter the default environment (all tools)
-nix develop
-
-# Enter a specific environment
-nix develop .#minimal   # core + bash + starship
-nix develop .#go        # Go toolchain
-nix develop .#rust      # Rust toolchain
-nix develop .#node      # Node.js
-nix develop .#python    # Python + uv
-nix develop .#claude    # Claude Code
-
-# Use from another project (remote flake reference)
-nix develop github:jorgengundersen/dev-environments#go
-```
-
-### With direnv
-
-Add to your project's `.envrc`:
+Use the default environment flake:
 
 ```bash
-use flake github:jorgengundersen/dev-environments
-# or for a specific shell:
-use flake github:jorgengundersen/dev-environments#go
+# enter full default environment
+nix develop ./environments/default
+
+# enter a tool-specific shell exposed by shared modules
+nix develop ./environments/default#go
+nix develop ./environments/default#python
+nix develop ./environments/default#claude
 ```
 
-## Environments
+From another repo via GitHub:
 
-| Shell | Description |
-|-------|-------------|
-| `default` | All tools combined |
-| `minimal` | Core utilities + bash + starship prompt |
-
-## Dev Shells
-
-### Core
-
-| Shell | Tools |
-|-------|-------|
-| `core` | git, gh, jq, yq, ripgrep, make, curl, wget, tree, unzip |
-| `bash` | bash-completion |
-| `prompt` | starship |
-| `fzf` | fzf |
-
-### Languages
-
-| Shell | Tools |
-|-------|-------|
-| `go` | go, gopls, golangci-lint |
-| `rust` | rustc, cargo, rustfmt, clippy, rust-analyzer |
-| `node` | nodejs |
-| `python` | python3, uv |
-| `bun` | bun |
-
-### AI
-
-| Shell | Tools |
-|-------|-------|
-| `claude` | claude-code (via llm-agents.nix) |
-| `copilot` | gh, copilot-cli (via llm-agents.nix) |
-
-### Data
-
-| Shell | Tools |
-|-------|-------|
-| `beads` | beads (via llm-agents.nix) |
-| `dolt` | dolt |
-
-### Editors
-
-| Shell | Tools |
-|-------|-------|
-| `neovim` | neovim, tree-sitter, nil, gopls, rust-analyzer |
-
-### Quality
-
-| Shell | Tools |
-|-------|-------|
-| `linters` | shellcheck, mdformat, lefthook, bats, hadolint (Linux) |
-
-### Git
-
-| Shell | Tools |
-|-------|-------|
-| `git` | git, gh, delta |
-
-### Utils
-
-| Shell | Tools |
-|-------|-------|
-| `glow` | glow |
-| `afk` | afk (via jorgengundersen/afk) |
-| `opencode` | opencode (via llm-agents.nix) |
+```bash
+nix develop "github:jorgengundersen/dev-environments?dir=environments/default"
+nix develop "github:jorgengundersen/dev-environments?dir=environments/default#go"
+```
 
 ## Home Manager
 
-A standalone Home Manager configuration is available for persistent dotfile management:
+Build and activate Home Manager from the default environment flake:
 
 ```bash
-# Build the home configuration
-nix build .#homeConfigurations.default.activationPackage
-
-# Activate
+nix build ./environments/default#homeConfigurations.default.activationPackage
 ./result/activate
 ```
 
-Home modules configure: bash (aliases, completion), starship prompt, fzf (keybindings), git (delta, aliases), and neovim (treesitter, LSP).
+To customize user/home targets, edit `environments/default/home.nix`.
 
-## Adding a New Tool
+## Add a Module
 
-Create a single `.nix` file anywhere in the repo. import-tree auto-discovers it — no registry to update.
+1. Add a `.nix` module under `shared/`.
+2. Expose a shell as `devShells.<name>`.
+3. Optionally add `flake.homeModules.<name>` for persistent config.
+4. If it belongs in the composed default shell, add it to `environments/default/default.nix`.
+5. Validate with:
 
-```nix
-# tools/mytool.nix
-_: {
-  perSystem =
-    { pkgs, ... }:
-    {
-      devShells.mytool = pkgs.mkShell {
-        packages = [ pkgs.mytool ];
-      };
-    };
-}
+```bash
+nix flake check ./environments/default
 ```
-
-The new shell is immediately available via `nix develop .#mytool`.
-
-To include it in composed environments like `default` or `minimal`, add the shell name to the relevant profile in `environments/profiles.json`.
-
-To add Home Manager configuration, define a `homeModules` entry in the same file:
-
-```nix
-{ config, lib, ... }:
-{
-  options.flake.homeModules = lib.mkOption {
-    type = lib.types.attrsOf lib.types.unspecified;
-    default = { };
-  };
-
-  config.flake.homeModules.mytool = {
-    programs.mytool.enable = true;
-  };
-
-  perSystem =
-    { pkgs, ... }:
-    {
-      devShells.mytool = pkgs.mkShell {
-        packages = [ pkgs.mytool ];
-      };
-    };
-}
-```
-
-## Architecture
-
-This repo follows the **dendritic pattern** — each `.nix` file is a self-contained flake-parts module organized by feature. Files are freely movable and auto-discovered by import-tree. See `specs/spec.md` for the full architecture specification.

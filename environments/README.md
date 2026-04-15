@@ -1,3 +1,3 @@
 # environments
-Purpose: composed entrypoints (`default`, `minimal`, etc).
-Expand: edit `profiles.json` for membership; add `<env>.nix` for new entrypoint mapping profile -> `inputsFrom` shells.
+Purpose: environment entrypoints as self-contained flakes.
+Expand: create a folder per environment (for example `default/`) with its own `flake.nix`, composition module, and optional Home Manager assembly.

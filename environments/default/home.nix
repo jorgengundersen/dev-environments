@@ -1,14 +1,28 @@
 { config, inputs, ... }:
 let
+  homeTargets = [
+    {
+      name = "default";
+      system = "x86_64-linux";
+      username = "devuser";
+      homeDirectory = "/home/devuser";
+    }
+    {
+      name = "devuser@aarch64";
+      system = "aarch64-linux";
+      username = "devuser";
+      homeDirectory = "/home/devuser";
+    }
+  ];
+
   mkHome =
-    system:
+    target:
     inputs.home-manager.lib.homeManagerConfiguration {
-      pkgs = inputs.nixpkgs.legacyPackages.${system};
+      pkgs = inputs.nixpkgs.legacyPackages.${target.system};
       modules = builtins.attrValues config.flake.homeModules ++ [
         {
           home = {
-            username = "devuser";
-            homeDirectory = "/home/devuser";
+            inherit (target) username homeDirectory;
             stateVersion = "24.11";
           };
         }
@@ -16,8 +30,10 @@ let
     };
 in
 {
-  flake.homeConfigurations = {
-    default = mkHome "x86_64-linux";
-    "devuser@aarch64" = mkHome "aarch64-linux";
-  };
+  flake.homeConfigurations = builtins.listToAttrs (
+    builtins.map (target: {
+      inherit (target) name;
+      value = mkHome target;
+    }) homeTargets
+  );
 }

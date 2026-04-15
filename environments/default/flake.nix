@@ -1,5 +1,5 @@
 {
-  description = "Composable dev environments";
+  description = "Default development environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -17,18 +17,29 @@
       url = "github:jorgengundersen/afk";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    shared = {
+      url = "path:../../shared";
+      flake = false;
+    };
   };
 
   outputs =
     inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
-      imports = [ (inputs.import-tree.matchNot ".*flake.*" ./.) ];
+      imports = [
+        (inputs.import-tree.matchNot ".*flake.*" inputs.shared)
+        ./home-modules.nix
+        ./home.nix
+        ./default.nix
+      ];
+
       systems = [
         "x86_64-linux"
         "aarch64-linux"
         "x86_64-darwin"
         "aarch64-darwin"
       ];
+
       perSystem =
         { pkgs, ... }:
         {

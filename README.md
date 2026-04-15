@@ -129,7 +129,9 @@ _: {
 }
 ```
 
-The new shell is immediately available via `nix develop .#mytool`. It's also automatically included in the `default` shell.
+The new shell is immediately available via `nix develop .#mytool`.
+
+To include it in composed environments like `default` or `minimal`, add the shell name to the relevant profile in `environments/profiles.json`.
 
 To add Home Manager configuration, define a `homeModules` entry in the same file:
 

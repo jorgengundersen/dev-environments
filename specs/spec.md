@@ -174,35 +174,69 @@ For aspects that include Home Manager configuration:
 
 ### Environments
 
-Environments compose aspects. Because each aspect defines its own `devShells.<name>`, an environment module combines them using `inputsFrom`:
+Environments compose aspects. Aspect shells are still defined in their own files (`devShells.go`, `devShells.core`, etc.), and environment entrypoints (`default`, `minimal`, etc.) select from those shells using named profiles.
+
+`environments/profiles.json` defines profile membership in one place:
+
+```json
+{
+  "default": ["core", "bash", "prompt", "go", "rust", "node"],
+  "minimal": ["core", "bash", "prompt"]
+}
+```
+
+Each environment entrypoint maps profile names to actual shells:
 
 ```nix
 # environments/default.nix
-{ inputs, ... }:
+_:
+let
+  profiles = builtins.fromJSON (builtins.readFile ./profiles.json);
+in
 {
   perSystem = { pkgs, self', ... }: {
     devShells.default = pkgs.mkShell {
-      inputsFrom = builtins.attrValues (builtins.removeAttrs self'.devShells [ "default" "minimal" ]);
+      inputsFrom = builtins.map (name: self'.devShells.${name}) profiles.default;
     };
   };
 }
 ```
-
-The `default` environment includes all aspects — this is the direct replacement for the current devenv Docker image. It is what `nix develop` (with no arguments) activates.
 
 ```nix
 # environments/minimal.nix
-{ inputs, ... }:
+_:
+let
+  profiles = builtins.fromJSON (builtins.readFile ./profiles.json);
+in
 {
-  perSystem = { self', pkgs, ... }: {
+  perSystem = { pkgs, self', ... }: {
     devShells.minimal = pkgs.mkShell {
-      inputsFrom = with self'.devShells; [ core bash prompt ];
+      inputsFrom = builtins.map (name: self'.devShells.${name}) profiles.minimal;
     };
   };
 }
 ```
 
-Additional environments are just different compositions of the same aspects.
+This keeps a single root flake/lockfile while making environment composition explicit and decoupled from automatic "include everything" behavior.
+
+### Build Behavior and Entrypoint Isolation
+
+When activating a specific shell (for example `nix develop .#minimal`), Nix realizes only that shell's dependency closure. It does **not** build other shell entrypoints such as `default` unless they are explicitly referenced.
+
+In other words:
+
+- `nix develop` builds `devShells.default`
+- `nix develop .#minimal` builds `devShells.minimal`
+- `nix develop .#go` builds `devShells.go`
+
+This provides practical entrypoint-level build isolation for container workflows.
+
+However, module loading/evaluation is broader than realization:
+
+- The flake/module graph is still evaluated to resolve outputs
+- A broken unrelated module can still fail evaluation even if its shell is not selected
+
+Therefore, all aspect files should remain evaluation-safe across supported platforms. Platform-specific packages must be guarded with conditional inclusion (`lib.optionals`, `lib.mkIf`, etc.) so selecting one environment does not fail because of another aspect's unsupported package.
 
 ### Home Manager
 
@@ -293,9 +327,10 @@ This clean separation means this repo never contains Dockerfiles, and the orches
 
 **Adding a tool:**
 1. Create or edit the appropriate aspect file — add packages, Home Manager config, and checks in one place
-2. The tool is automatically discovered by import-tree; no need to update `flake.nix` or an environment file
-3. `nix flake check` to validate
-4. Commit
+2. The tool shell is automatically discovered by import-tree; no need to update `flake.nix`
+3. Add the shell name to one or more profiles in `environments/profiles.json` if it should be included in composed environments like `default` or `minimal`
+4. `nix flake check` to validate
+5. Commit
 
 **Creating a new environment:**
 1. Create a file in `environments/` that composes aspects via `inputsFrom`

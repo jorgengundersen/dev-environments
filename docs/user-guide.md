@@ -32,6 +32,20 @@ Use from another repo:
 nix develop "github:jorgengundersen/dev-environments?dir=environments/default"
 ```
 
+Pin to a known revision for reproducibility:
+
+```bash
+nix develop "github:jorgengundersen/dev-environments/<commit-or-tag>?dir=environments/default"
+```
+
+Use a local checkout from another project directory:
+
+```bash
+nix develop "git+file:///absolute/path/to/dev-environments?dir=environments/default#go"
+```
+
+Tip: prefer `./environments/default#name` or `git+file://...?...` URL forms for local work. Avoid `path:./environments/default#...` because it can resolve relative imports differently in pure evaluation mode.
+
 ## Composition model
 
 - Shared module definitions live in `shared/`.
@@ -73,4 +87,28 @@ If `DEVENV_BASH_SOURCES` is unset, the shell uses:
 
 ```bash
 nix flake check ./environments/default
+```
+
+## Add a new environment entrypoint
+
+Create a new environment when you want a different default profile or different flake inputs.
+
+1. Create `environments/<name>/` with `flake.nix`, `default.nix`, and optional `home.nix`/`home-modules.nix`.
+2. Reuse shared modules with:
+
+```nix
+(inputs.import-tree.matchNot ".*flake.*" ../../shared)
+```
+
+3. Define a `defaultProfile` in `environments/<name>/default.nix` for your composed shell.
+4. Generate or refresh lock files:
+
+```bash
+./scripts/lock-environments.sh
+```
+
+5. Validate:
+
+```bash
+nix flake check ./environments/<name>
 ```

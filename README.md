@@ -36,6 +36,14 @@ nix develop "github:jorgengundersen/dev-environments?dir=environments/default"
 nix develop "github:jorgengundersen/dev-environments?dir=environments/default#go"
 ```
 
+Pin to a specific revision when you need reproducibility:
+
+```bash
+nix develop "github:jorgengundersen/dev-environments/<commit-or-tag>?dir=environments/default"
+```
+
+See `docs/user-guide.md` for cross-repo usage patterns and how to create additional environment entrypoints.
+
 ## Repository Scripts
 
 Maintenance scripts live in `scripts/`.

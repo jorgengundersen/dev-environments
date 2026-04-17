@@ -3,6 +3,7 @@ let
   defaultProfile = [
     "core"
     "bash"
+    "tmux"
     "prompt"
     "fzf"
     "go"

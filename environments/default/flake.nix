@@ -40,6 +40,16 @@
         { pkgs, ... }:
         {
           formatter = pkgs.nixfmt;
+
+          apps.havn-session-prepare = {
+            type = "app";
+            program = toString (
+              pkgs.writeShellScript "havn-session-prepare" ''
+                set -eu
+                exit 0
+              ''
+            );
+          };
         };
     };
 }

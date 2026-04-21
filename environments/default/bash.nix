@@ -24,7 +24,6 @@
       ga = "git add";
       gc = "git commit -m";
       lg = "lazygit";
-      dotfiles = "tmux-sessionizer ~/dotfiles";
       tree = "tree --dirsfirst -F";
       mkdir = "mkdir -p -v";
       ll = "ls -latr";

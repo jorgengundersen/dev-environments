@@ -6,6 +6,7 @@ This directory contains maintenance and automation scripts for this repository.
 
 - Keep scripts focused on one task.
 - Use kebab-case file names.
+- Validation policy: do not use `nix develop`; use `nix flake check`/`nix build`/`nix eval`.
 - Make shell scripts executable and include:
 
 ```bash

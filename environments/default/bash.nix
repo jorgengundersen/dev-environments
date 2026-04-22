@@ -32,7 +32,7 @@
       lg = "lazygit";
       tree = "tree --dirsfirst -F";
       mkdir = "mkdir -p -v";
-      ll = "ls -latr";
+      ll = lib.mkForce "ls -latr";
       cp = "cp -iv";
       mv = "mv -iv";
       rm = "rm -iv";

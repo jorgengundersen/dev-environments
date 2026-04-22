@@ -44,8 +44,49 @@
             type = "app";
             program = toString (
               pkgs.writeShellScript "havn-session-prepare" ''
-                set -eu
-                exit 0
+                set -euo pipefail
+
+                if [ "''${HAVN_SKIP_HOME_MANAGER:-0}" = "1" ]; then
+                  exit 0
+                fi
+
+                user="''${USER:-}"
+                home="''${HOME:-}"
+
+                if [ -z "$user" ]; then
+                  echo "havn-session-prepare: USER is unset; cannot resolve Home Manager target" >&2
+                  echo "Set USER or disable with HAVN_SKIP_HOME_MANAGER=1" >&2
+                  exit 1
+                fi
+
+                if [ -z "$home" ]; then
+                  echo "havn-session-prepare: HOME is unset; cannot resolve Home Manager target" >&2
+                  echo "Set HOME or disable with HAVN_SKIP_HOME_MANAGER=1" >&2
+                  exit 1
+                fi
+
+                target="''${HAVN_HOME_MANAGER_TARGET:-default}"
+                default_flake_ref="devenv"
+                flake_ref="''${HAVN_HOME_MANAGER_FLAKE:-$default_flake_ref}"
+                backup_ext="''${HAVN_HOME_MANAGER_BACKUP_EXT:-havn-backup}"
+
+                if [ "$backup_ext" = "none" ]; then
+                  unset HOME_MANAGER_BACKUP_EXT
+                else
+                  export HOME_MANAGER_BACKUP_EXT="$backup_ext"
+                fi
+
+                if ! activation_path="$(${pkgs.nix}/bin/nix --extra-experimental-features 'nix-command flakes' build --impure --no-link --print-out-paths "$flake_ref#homeConfigurations.$target.activationPackage")"; then
+                  echo "havn-session-prepare: failed to build Home Manager activation package" >&2
+                  echo "Check HAVN_HOME_MANAGER_FLAKE/HAVN_HOME_MANAGER_TARGET or disable with HAVN_SKIP_HOME_MANAGER=1" >&2
+                  exit 1
+                fi
+
+                if ! "$activation_path/activate"; then
+                  echo "havn-session-prepare: Home Manager activation failed" >&2
+                  echo "Try setting HAVN_HOME_MANAGER_BACKUP_EXT=<ext> (default: havn-backup) or disable with HAVN_SKIP_HOME_MANAGER=1" >&2
+                  exit 1
+                fi
               ''
             );
           };

@@ -44,6 +44,23 @@ nix develop "github:jorgengundersen/dev-environments/<commit-or-tag>?dir=environ
 
 See `docs/user-guide.md` for cross-repo usage patterns and how to create additional environment entrypoints.
 
+## Versioning
+
+- Current release version is recorded in `VERSION`.
+- Release history is tracked in `CHANGELOG.md`.
+- Verify your checkout version with:
+
+```bash
+cat VERSION
+git describe --tags --always --dirty
+```
+
+- Pin consumers to a tag (or commit) to avoid cache/debug ambiguity:
+
+```bash
+nix develop "github:jorgengundersen/dev-environments/v0.1.0?dir=environments/default"
+```
+
 ## Repository Scripts
 
 Maintenance scripts live in `scripts/`.

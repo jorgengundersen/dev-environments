@@ -54,11 +54,21 @@
                 user="''${USER:-}"
                 home="''${HOME:-}"
 
+                if [ -z "$user" ] && command -v id >/dev/null 2>&1; then
+                  user="$(id -un 2>/dev/null || true)"
+                fi
+
+                if [ -z "$user" ] && command -v whoami >/dev/null 2>&1; then
+                  user="$(whoami 2>/dev/null || true)"
+                fi
+
                 if [ -z "$user" ]; then
                   echo "havn-session-prepare: USER is unset; cannot resolve Home Manager target" >&2
-                  echo "Set USER or disable with HAVN_SKIP_HOME_MANAGER=1" >&2
+                  echo "Set USER, ensure 'id -un' works, or disable with HAVN_SKIP_HOME_MANAGER=1" >&2
                   exit 1
                 fi
+
+                export USER="$user"
 
                 if [ -z "$home" ]; then
                   echo "havn-session-prepare: HOME is unset; cannot resolve Home Manager target" >&2

@@ -46,6 +46,7 @@ By default it resolves the Home Manager source from `devenv` and target
 What it does:
 
 - validates `USER` and `HOME`
+- resolves missing `USER` via `id -un`/`whoami`
 - builds `homeConfigurations.<target>.activationPackage` with `--impure`
 - runs the activation script
 

@@ -42,6 +42,7 @@
 
           apps.havn-session-prepare = {
             type = "app";
+            meta.description = "Prepare Home Manager for havn sessions";
             program = toString (
               pkgs.writeShellScript "havn-session-prepare" ''
                 set -euo pipefail

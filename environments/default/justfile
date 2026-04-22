@@ -1,0 +1,6 @@
+set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
+
+show-build-parallelism:
+	@printf "NIX_BUILD_CORES=%s\n" "${NIX_BUILD_CORES:-unset}"
+	@printf "CARGO_BUILD_JOBS=%s\n" "${CARGO_BUILD_JOBS:-unset}"
+	@nix config show --json | jq -r '.["cores"].value as $cores | .["max-jobs"].value as $maxJobs | "nix.cores=\($cores)\nnix.max-jobs=\($maxJobs)"'

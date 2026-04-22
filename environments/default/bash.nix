@@ -4,6 +4,12 @@
     LS_COLORS = "ow=01;33";
     MANWIDTH = "999";
     TERMINAL = "wezterm";
+    NIX_BUILD_CORES = "4";
+    CARGO_BUILD_JOBS = "4";
+    NIX_CONFIG = ''
+      cores = 4
+      max-jobs = 1
+    '';
   };
 
   programs.readline.extraConfig = ''

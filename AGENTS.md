@@ -120,6 +120,7 @@ For more details, see README.md and docs/QUICKSTART.md.
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
 - Validation: never use `nix develop`; use `nix flake check`/`nix build`/`nix eval`.
+- Releases: create immutable `vX.Y.Z` tags and move `latest` to the newest release.
 
 <!-- END BEADS INTEGRATION -->
 

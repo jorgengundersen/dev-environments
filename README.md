@@ -48,6 +48,8 @@ See `docs/user-guide.md` for cross-repo usage patterns and how to create additio
 
 - Current release version is recorded in `VERSION`.
 - Release history is tracked in `CHANGELOG.md`.
+- `latest` is a moving convenience tag that points to the newest release.
+- SemVer tags (`vX.Y.Z`) remain immutable and are the recommended consumer pin.
 - Verify your checkout version with:
 
 ```bash

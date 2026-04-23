@@ -14,17 +14,22 @@ _: {
   flake.homeModules.git = _: {
     programs.git = {
       enable = true;
-      delta.enable = true;
-      aliases = {
-        co = "checkout";
-        br = "branch";
-        ci = "commit";
-        st = "status";
-        lg = "log --oneline --graph --decorate";
-      };
-      extraConfig = {
+      settings = {
+        alias = {
+          co = "checkout";
+          br = "branch";
+          ci = "commit";
+          st = "status";
+          lg = "log --oneline --graph --decorate";
+        };
         init.defaultBranch = "main";
       };
+      signing.format = "openpgp";
+    };
+
+    programs.delta = {
+      enable = true;
+      enableGitIntegration = true;
     };
   };
 }

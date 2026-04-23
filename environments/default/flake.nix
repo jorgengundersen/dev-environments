@@ -87,7 +87,7 @@
                   export HOME_MANAGER_BACKUP_EXT="$backup_ext"
                 fi
 
-                if ! activation_path="$(${pkgs.nix}/bin/nix --extra-experimental-features 'nix-command flakes' build --impure --no-link --print-out-paths "$flake_ref#homeConfigurations.$target.activationPackage")"; then
+                if ! activation_path="$(${pkgs.nix}/bin/nix --extra-experimental-features 'nix-command flakes' build --refresh --impure --no-link --print-out-paths "$flake_ref#homeConfigurations.$target.activationPackage")"; then
                   echo "havn-session-prepare: failed to build Home Manager activation package" >&2
                   echo "Check HAVN_HOME_MANAGER_FLAKE/HAVN_HOME_MANAGER_TARGET or disable with HAVN_SKIP_HOME_MANAGER=1" >&2
                   exit 1

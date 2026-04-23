@@ -9,4 +9,10 @@
         ];
       };
     };
+
+  flake.homeModules.codex = _: {
+    home.sessionVariables = {
+      CODEX_HOME = "$XDG_STATE_HOME/codex";
+    };
+  };
 }

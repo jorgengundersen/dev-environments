@@ -9,4 +9,11 @@
         ];
       };
     };
+
+  flake.homeModules.copilot = _: {
+    home.sessionVariables = {
+      COPILOT_HOME = "$XDG_STATE_HOME/copilot";
+      COPILOT_CACHE_HOME = "$XDG_CACHE_HOME/copilot";
+    };
+  };
 }

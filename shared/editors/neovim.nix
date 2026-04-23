@@ -19,11 +19,13 @@ _: {
       programs.neovim = {
         enable = true;
         defaultEditor = true;
+        withRuby = true;
+        withPython3 = true;
         plugins = with pkgs.vimPlugins; [
           nvim-treesitter.withAllGrammars
           nvim-lspconfig
         ];
-        extraLuaConfig = ''
+        initLua = ''
           local lspconfig = require('lspconfig')
           lspconfig.nil_ls.setup{}
           lspconfig.gopls.setup{}

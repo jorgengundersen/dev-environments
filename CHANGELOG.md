@@ -6,6 +6,19 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-04-24
+
+### Changed
+
+- Updated Home Manager Neovim and Git module options to current keys to remove deprecation warnings.
+- Pinned Home Manager defaults for `programs.neovim.withRuby`, `programs.neovim.withPython3`, and `programs.git.signing.format` to preserve current behavior.
+- Added `EDITOR=nvim` and `VISUAL=nvim` to shared shell session variables.
+
+### Fixed
+
+- `havn-session-prepare` now supports `HAVN_HOME_MANAGER_REFRESH` as an explicit refresh override while keeping refresh enabled by default for nested Home Manager builds.
+- Documented refresh behavior and override controls for `havn-session-prepare` in `environments/default/README.md`.
+
 ## [0.1.1] - 2026-04-23
 
 ### Added
@@ -28,6 +41,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Optional `apps.<system>.havn-session-prepare` startup hook for havn sessions.
 - Repository maintenance scripts and documented validation workflow.
 
-[Unreleased]: https://github.com/jorgengundersen/dev-environments/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/jorgengundersen/dev-environments/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.1.2
 [0.1.1]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.1.1
 [0.1.0]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.1.0

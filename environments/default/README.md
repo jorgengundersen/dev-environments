@@ -47,7 +47,7 @@ What it does:
 
 - validates `USER` and `HOME`
 - resolves missing `USER` via `id -un`/`whoami`
-- builds `homeConfigurations.<target>.activationPackage` with `--impure`
+- builds `homeConfigurations.<target>.activationPackage` with `--refresh --impure` by default
 - runs the activation script
 
 Run manually:
@@ -68,6 +68,7 @@ Behavior controls:
 - disable prepare step: `HAVN_SKIP_HOME_MANAGER=1`
 - override target name: `HAVN_HOME_MANAGER_TARGET=<name>`
 - override flake source: `HAVN_HOME_MANAGER_FLAKE='<flake-ref>'`
+- override refresh behavior: `HAVN_HOME_MANAGER_REFRESH=0` to disable refresh (default: enabled)
 - control backup extension: `HAVN_HOME_MANAGER_BACKUP_EXT=<ext>` (default: `havn-backup`)
 - disable backups entirely: `HAVN_HOME_MANAGER_BACKUP_EXT=none`
 

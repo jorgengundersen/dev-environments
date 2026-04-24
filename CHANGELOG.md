@@ -6,6 +6,10 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added
+
+- Added `less` to the shared `core` development shell package set.
+
 ## [0.1.2] - 2026-04-24
 
 ### Changed

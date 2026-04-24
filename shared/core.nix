@@ -4,6 +4,7 @@ _: {
     {
       devShells.core = pkgs.mkShell {
         packages = with pkgs; [
+          less
           jq
           yq
           ripgrep

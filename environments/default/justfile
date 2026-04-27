@@ -24,4 +24,5 @@ show-hm-session-vars:
 	printf "CODEX_HOME=%s\n" "${CODEX_HOME:-unset}"; \
 	printf "CLAUDE_CONFIG_DIR=%s\n" "${CLAUDE_CONFIG_DIR:-unset}"; \
 	printf "COPILOT_HOME=%s\n" "${COPILOT_HOME:-unset}"; \
-	printf "PI_CODING_AGENT_DIR=%s\n" "${PI_CODING_AGENT_DIR:-unset}"
+	printf "PI_CODING_AGENT_DIR=%s\n" "${PI_CODING_AGENT_DIR:-unset}"; \
+	printf "PI_PACKAGE_DIR=%s\n" "${PI_PACKAGE_DIR:-unset}"

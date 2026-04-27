@@ -20,6 +20,12 @@ Quick check from inside the environment:
 just show-build-parallelism
 ```
 
+Check Home Manager session variable availability in your current shell:
+
+```bash
+just show-hm-session-vars
+```
+
 ## Intentional override
 
 If you need higher parallelism for a specific run, override per command:
@@ -49,6 +55,11 @@ What it does:
 - resolves missing `USER` via `id -un`/`whoami`
 - builds `homeConfigurations.<target>.activationPackage` with `--refresh --impure` by default
 - runs the activation script
+
+After activation, `devShells.default` attempts to source Home Manager session
+variables automatically from common profile paths (including
+`~/.nix-profile/.../hm-session-vars.sh`) when you enter the shell. If no
+session-vars file exists, shell startup continues without failing.
 
 Run manually:
 

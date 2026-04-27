@@ -4,3 +4,24 @@ show-build-parallelism:
 	@printf "NIX_BUILD_CORES=%s\n" "${NIX_BUILD_CORES:-unset}"
 	@printf "CARGO_BUILD_JOBS=%s\n" "${CARGO_BUILD_JOBS:-unset}"
 	@nix config show --json | jq -r '.["cores"].value as $cores | .["max-jobs"].value as $maxJobs | "nix.cores=\($cores)\nnix.max-jobs=\($maxJobs)"'
+
+show-hm-session-vars:
+	@hm_user="${USER:-}"; hm_session_found=0; if [[ -z "$hm_user" ]] && command -v id >/dev/null 2>&1; then hm_user="$(id -un 2>/dev/null || true)"; fi; \
+	for hm_session_vars in \
+	  "${HOME:-}/.nix-profile/etc/profile.d/hm-session-vars.sh" \
+	  "${HOME:-}/.local/state/nix/profile/etc/profile.d/hm-session-vars.sh" \
+	  "${HOME:-}/.local/state/nix/profiles/profile/etc/profile.d/hm-session-vars.sh" \
+	  "/etc/profiles/per-user/$hm_user/etc/profile.d/hm-session-vars.sh"; do \
+	  if [[ -f "$hm_session_vars" ]]; then \
+	    printf "hm_session_vars=%s\n" "$hm_session_vars"; \
+	    hm_session_found=1; \
+	    break; \
+	  fi; \
+	done; \
+	if [[ "$hm_session_found" -eq 0 ]]; then printf "hm_session_vars=not-found\n"; fi; \
+	printf "EDITOR=%s\n" "${EDITOR:-unset}"; \
+	printf "VISUAL=%s\n" "${VISUAL:-unset}"; \
+	printf "CODEX_HOME=%s\n" "${CODEX_HOME:-unset}"; \
+	printf "CLAUDE_CONFIG_DIR=%s\n" "${CLAUDE_CONFIG_DIR:-unset}"; \
+	printf "COPILOT_HOME=%s\n" "${COPILOT_HOME:-unset}"; \
+	printf "PI_CODING_AGENT_DIR=%s\n" "${PI_CODING_AGENT_DIR:-unset}"

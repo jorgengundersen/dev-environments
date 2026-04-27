@@ -63,6 +63,27 @@ in
                   break
                 fi
               done
+
+              if [ -n "''${HOME:-}" ]; then
+                : "''${XDG_CONFIG_HOME:=$HOME/.config}"
+                : "''${XDG_CACHE_HOME:=$HOME/.cache}"
+                : "''${XDG_DATA_HOME:=$HOME/.local/share}"
+                : "''${XDG_STATE_HOME:=$HOME/.local/state}"
+              fi
+
+              : "''${EDITOR:=nvim}"
+              : "''${VISUAL:=nvim}"
+              : "''${CODEX_HOME:=$XDG_STATE_HOME/codex}"
+              : "''${CLAUDE_CONFIG_DIR:=$XDG_STATE_HOME/claude}"
+              : "''${COPILOT_HOME:=$XDG_STATE_HOME/copilot}"
+              : "''${COPILOT_CACHE_HOME:=$XDG_CACHE_HOME/copilot}"
+              : "''${PI_CODING_AGENT_DIR:=$XDG_STATE_HOME/pi/agent}"
+              : "''${PI_PACKAGE_DIR:=$XDG_STATE_HOME/pi/packages}"
+
+              export XDG_CONFIG_HOME XDG_CACHE_HOME XDG_DATA_HOME XDG_STATE_HOME
+              export EDITOR VISUAL
+              export CODEX_HOME CLAUDE_CONFIG_DIR COPILOT_HOME COPILOT_CACHE_HOME
+              export PI_CODING_AGENT_DIR PI_PACKAGE_DIR
             '';
           }
         else

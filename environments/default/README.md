@@ -59,7 +59,8 @@ What it does:
 After activation, `devShells.default` attempts to source Home Manager session
 variables automatically from common profile paths (including
 `~/.nix-profile/.../hm-session-vars.sh`) when you enter the shell. If no
-session-vars file exists, shell startup continues without failing.
+session-vars file exists, shell startup continues without failing and applies
+non-overriding defaults for core editor/XDG/AI CLI variables.
 
 Run manually:
 

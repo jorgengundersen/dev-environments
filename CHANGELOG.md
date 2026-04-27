@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-04-27
+
 ### Added
 
 - Added `less` to the shared `core` development shell package set.
@@ -53,7 +55,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Optional `apps.<system>.havn-session-prepare` startup hook for havn sessions.
 - Repository maintenance scripts and documented validation workflow.
 
-[Unreleased]: https://github.com/jorgengundersen/dev-environments/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/jorgengundersen/dev-environments/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.1.3
 [0.1.2]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.1.2
 [0.1.1]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.1.1
 [0.1.0]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.1.0

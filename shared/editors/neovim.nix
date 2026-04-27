@@ -1,10 +1,10 @@
 _: {
   perSystem =
-    { pkgs, ... }:
+    { pkgs, pkgsUnstable, ... }:
     {
       devShells.neovim = pkgs.mkShell {
         packages = with pkgs; [
-          neovim
+          pkgsUnstable.neovim
           tree-sitter
           nil
           gopls
@@ -14,14 +14,22 @@ _: {
     };
 
   flake.homeModules.neovim =
-    { pkgs, ... }:
+    {
+      pkgs,
+      pkgsUnstable ? pkgs,
+      ...
+    }:
+    let
+      nvimPkgs = pkgsUnstable;
+    in
     {
       programs.neovim = {
         enable = true;
         defaultEditor = true;
+        package = nvimPkgs.neovim;
         withRuby = true;
         withPython3 = true;
-        plugins = with pkgs.vimPlugins; [
+        plugins = with nvimPkgs.vimPlugins; [
           nvim-treesitter.withAllGrammars
           nvim-lspconfig
         ];

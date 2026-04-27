@@ -24,6 +24,9 @@ let
     target:
     inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = inputs.nixpkgs.legacyPackages.${target.system};
+      extraSpecialArgs = {
+        pkgsUnstable = inputs.nixpkgs-unstable.legacyPackages.${target.system};
+      };
       modules = builtins.attrValues config.flake.homeModules ++ [
         ./bash.nix
         {

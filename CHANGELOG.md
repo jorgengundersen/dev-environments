@@ -15,6 +15,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - `devShells.default` now sources Home Manager `hm-session-vars.sh` from common profile paths when available, so variables like `EDITOR`/`CODEX_HOME` are present in interactive shell entry points (including havn flows) without login-shell workarounds.
 - `devShells.default` and `devShells.pi` now apply non-overriding fallback exports for XDG/editor/AI variables when Home Manager session files are absent.
 - Removed default `PI_PACKAGE_DIR` exports so `pi` can resolve its bundled package metadata from the installed package path instead of failing on missing `~/.local/state/pi/packages/package.json`.
+- `devShells.default` and `devShells.codex` now create `CODEX_HOME` (and related XDG state directories) on shell entry so `codex` does not fail when the configured home path is missing.
+- `devShells.claude`, `devShells.copilot`, and `devShells.pi` now ensure their configured state/cache directories exist on shell entry to avoid missing-path startup failures when Home Manager activation did not pre-create them.
 
 ## [0.1.2] - 2026-04-24
 

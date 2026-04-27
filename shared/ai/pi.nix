@@ -16,6 +16,10 @@
 
           export XDG_STATE_HOME
           export PI_CODING_AGENT_DIR
+
+          if [ -n "$PI_CODING_AGENT_DIR" ] && [ ! -d "$PI_CODING_AGENT_DIR" ]; then
+            mkdir -p "$PI_CODING_AGENT_DIR" >/dev/null 2>&1 || true
+          fi
         '';
       };
     };

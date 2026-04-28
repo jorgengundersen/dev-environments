@@ -16,24 +16,19 @@ _: {
   flake.homeModules.neovim =
     {
       pkgs,
-      pkgsUnstable ? pkgs,
       ...
     }:
-    let
-      nvimPkgs = pkgsUnstable;
-    in
     {
       programs.neovim = {
         enable = true;
         defaultEditor = true;
-        package = nvimPkgs.neovim;
         withRuby = true;
         withPython3 = true;
-        plugins = with nvimPkgs.vimPlugins; [
+        plugins = with pkgs.vimPlugins; [
           nvim-treesitter.withAllGrammars
           nvim-lspconfig
         ];
-        initLua = ''
+        extraLuaConfig = ''
           local lspconfig = require('lspconfig')
           lspconfig.nil_ls.setup{}
           lspconfig.gopls.setup{}

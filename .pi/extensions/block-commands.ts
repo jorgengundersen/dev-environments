@@ -13,7 +13,8 @@ import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
  *
  * Notes:
  * - Shell parsing here is intentionally best-effort. It handles common command
- *   separators, simple quoting, env assignments, and a few wrapper commands.
+ *   separators, simple quoting, env assignments, common wrapper commands, and
+ *   one level of nested shell indirection such as `bash -lc '...'`.
  * - This is a workflow guard, not a hard sandbox. Other extensions can still
  *   execute arbitrary code via pi.exec().
  */
@@ -46,6 +47,8 @@ type CommandPolicy =
       isBlocked: (match: CommandMatch) => boolean;
     };
 
+const MAX_RECURSION_DEPTH = 3;
+
 const ghAllowedCommandSummary = [
   "gh --version",
   "gh help",
@@ -71,8 +74,15 @@ const commandPolicies: CommandPolicy[] = [
     mode: "defaultAllow",
     executable: "git",
     summary:
-      "Allow git by default, but block git push force variants: -f, --force, --force-with-lease, --force-if-includes, and +refspec forms.",
+      "Allow git by default, but block git push force variants: -f, --force, --force-with-lease, --force-if-includes, --mirror, and +refspec forms.",
     isBlocked: (match) => isBlockedGitForcePush(match.argv),
+  },
+  {
+    name: "terraform-apply-block",
+    mode: "defaultAllow",
+    executable: "terraform",
+    summary: "Allow terraform by default, but block terraform apply.",
+    isBlocked: (match) => isBlockedTerraformApply(match.argv),
   },
 ];
 
@@ -216,29 +226,40 @@ function isEnvAssignment(token: string): boolean {
   return /^[A-Za-z_][A-Za-z0-9_]*=/.test(token);
 }
 
-function unwrapLeadingWrappers(tokens: string[]): string[] | null {
-  let remaining = [...tokens];
+function unwrapOptionWrapper(
+  tokens: string[],
+  optionsWithArgument: string[] = [],
+  longOptionsWithArgument: string[] = [],
+): string[] {
+  const optionsWithArgumentSet = new Set(optionsWithArgument);
+  let i = 0;
 
-  while (remaining.length > 0) {
-    if (isEnvAssignment(remaining[0]!)) {
-      remaining = remaining.slice(1);
+  while (i < tokens.length) {
+    const token = tokens[i]!;
+
+    if (token === "--") {
+      return tokens.slice(i + 1);
+    }
+
+    if (optionsWithArgumentSet.has(token)) {
+      i += 2;
       continue;
     }
 
-    if (remaining[0] === "env") {
-      remaining = unwrapEnv(remaining.slice(1));
+    if (longOptionsWithArgument.some((option) => token.startsWith(`${option}=`))) {
+      i += 1;
       continue;
     }
 
-    if (remaining[0] === "command" || remaining[0] === "builtin" || remaining[0] === "noglob" || remaining[0] === "nocorrect" || remaining[0] === "time") {
-      remaining = remaining.slice(1);
+    if (token.startsWith("-")) {
+      i += 1;
       continue;
     }
 
-    break;
+    return tokens.slice(i);
   }
 
-  return remaining.length > 0 ? remaining : null;
+  return [];
 }
 
 function unwrapEnv(tokens: string[]): string[] {
@@ -271,6 +292,64 @@ function unwrapEnv(tokens: string[]): string[] {
   return [];
 }
 
+function unwrapLeadingWrappers(tokens: string[]): string[] | null {
+  let remaining = [...tokens];
+
+  while (remaining.length > 0) {
+    if (isEnvAssignment(remaining[0]!)) {
+      remaining = remaining.slice(1);
+      continue;
+    }
+
+    switch (remaining[0]) {
+      case "env":
+        remaining = unwrapEnv(remaining.slice(1));
+        continue;
+      case "command":
+      case "builtin":
+      case "noglob":
+      case "nocorrect":
+      case "time":
+      case "nohup":
+        remaining = remaining.slice(1);
+        continue;
+      case "sudo":
+        remaining = unwrapOptionWrapper(remaining.slice(1), ["-u", "-g", "-h", "-p", "-C", "-T", "-r", "-t"], [
+          "--user",
+          "--group",
+          "--host",
+          "--prompt",
+          "--close-from",
+          "--command-timeout",
+          "--chdir",
+        ]);
+        continue;
+      case "doas":
+        remaining = unwrapOptionWrapper(remaining.slice(1), ["-u"], ["--user"]);
+        continue;
+      case "nice":
+        remaining = unwrapOptionWrapper(remaining.slice(1), ["-n"], ["--adjustment"]);
+        continue;
+      case "ionice":
+        remaining = unwrapOptionWrapper(remaining.slice(1), ["-c", "-n", "-t", "-p", "-P"], ["--class", "--classdata", "--pid", "--pgid"]);
+        continue;
+      case "chrt":
+        remaining = unwrapOptionWrapper(remaining.slice(1), ["-p", "-P", "-T", "-D"], ["--pid", "--max", "--sched-runtime", "--sched-deadline", "--sched-period"]);
+        continue;
+      case "stdbuf":
+        remaining = unwrapOptionWrapper(remaining.slice(1), ["-i", "-o", "-e"], []);
+        continue;
+      case "timeout":
+        remaining = unwrapOptionWrapper(remaining.slice(1), ["-k", "-s", "--kill-after", "--signal"], []);
+        continue;
+      default:
+        return remaining.length > 0 ? remaining : null;
+    }
+  }
+
+  return remaining.length > 0 ? remaining : null;
+}
+
 function extractCommandMatch(segment: string): CommandMatch | null {
   const tokens = tokenizeShell(segment);
   const argv = unwrapLeadingWrappers(tokens);
@@ -283,6 +362,37 @@ function extractCommandMatch(segment: string): CommandMatch | null {
     argv,
     segment,
   };
+}
+
+function extractNestedShellCommand(match: CommandMatch): string | null {
+  if (!["bash", "sh", "dash", "zsh", "fish"].includes(match.executable)) {
+    return null;
+  }
+
+  const args = match.argv.slice(1);
+  for (let i = 0; i < args.length; i += 1) {
+    const token = args[i]!;
+
+    if (token === "--") {
+      return null;
+    }
+
+    if (token === "-c" || token === "--command") {
+      return args[i + 1] ?? null;
+    }
+
+    if (/^-[^-]*c[^-]*$/.test(token)) {
+      return args[i + 1] ?? null;
+    }
+
+    if (token.startsWith("-")) {
+      continue;
+    }
+
+    return null;
+  }
+
+  return null;
 }
 
 function stripGhGlobalOptions(args: string[]): string[] {
@@ -399,7 +509,8 @@ function isGitForceFlag(token: string): boolean {
     token === "--force-with-lease" ||
     token.startsWith("--force-with-lease=") ||
     token === "--force-if-includes" ||
-    token.startsWith("--force-if-includes=")
+    token.startsWith("--force-if-includes=") ||
+    token === "--mirror"
   ) {
     return true;
   }
@@ -416,7 +527,46 @@ function isBlockedGitForcePush(argv: string[]): boolean {
   return gitArgs.slice(1).some((token) => isGitForceFlag(token) || token.startsWith("+"));
 }
 
-function findPolicyViolation(script: string): PolicyViolation | null {
+function stripTerraformGlobalOptions(args: string[]): string[] {
+  let i = 0;
+  while (i < args.length) {
+    const token = args[i]!;
+
+    if (token === "--") {
+      return args.slice(i + 1);
+    }
+
+    if (token === "-chdir") {
+      i += 2;
+      continue;
+    }
+
+    if (token.startsWith("-chdir=")) {
+      i += 1;
+      continue;
+    }
+
+    if (token.startsWith("-")) {
+      i += 1;
+      continue;
+    }
+
+    break;
+  }
+
+  return args.slice(i);
+}
+
+function isBlockedTerraformApply(argv: string[]): boolean {
+  const terraformArgs = stripTerraformGlobalOptions(argv.slice(1));
+  return terraformArgs[0] === "apply";
+}
+
+function findPolicyViolation(script: string, depth = 0): PolicyViolation | null {
+  if (depth > MAX_RECURSION_DEPTH) {
+    return null;
+  }
+
   for (const segment of splitShellSegments(script)) {
     const match = extractCommandMatch(segment);
     if (!match) {
@@ -444,6 +594,14 @@ function findPolicyViolation(script: string): PolicyViolation | null {
         };
       }
     }
+
+    const nestedShellCommand = extractNestedShellCommand(match);
+    if (nestedShellCommand) {
+      const nestedViolation = findPolicyViolation(nestedShellCommand, depth + 1);
+      if (nestedViolation) {
+        return nestedViolation;
+      }
+    }
   }
 
   return null;
@@ -469,7 +627,8 @@ function buildSystemPromptPolicyNote(): string {
   const lines = [
     "Shell command policy in this session:",
     `- gh commands are blocked by default. Allowed exceptions: ${ghAllowedCommandSummary}.`,
-    "- git is allowed by default, but git push force variants are blocked: -f, --force, --force-with-lease, --force-if-includes, and +refspec forms.",
+    "- git is allowed by default, but git push force variants are blocked: -f, --force, --force-with-lease, --force-if-includes, --mirror, and +refspec forms.",
+    "- terraform is allowed by default, but terraform apply is blocked.",
     "- If a blocked command would be useful, explain that it is blocked instead of trying to run it.",
   ];
 

@@ -23,7 +23,10 @@ What it does:
   - `git push --force`
   - `git push --force-with-lease`
   - `git push --force-if-includes`
+  - `git push --mirror`
   - `git push ... +<refspec>`
+- allows `terraform` generally, but blocks:
+  - `terraform apply`
 - applies to both:
   - LLM `bash` tool calls
   - user `!` / `!!` shell commands inside pi
@@ -47,3 +50,11 @@ Good fit examples:
 
 This is a workflow guard inside pi, not a full sandbox.
 Other trusted pi extensions can still execute commands via extension APIs.
+
+It now also handles several common wrapper and indirection forms, such as:
+
+- `sudo git push --force ...`
+- `env ... git push --force ...`
+- `bash -lc 'git push --force ...'`
+
+It still cannot guarantee blocking for arbitrarily obfuscated shell evaluation patterns.

@@ -8,7 +8,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Added
 
-- Added a project-local pi extension at `.pi/extensions/block-commands.ts` to block configured shell commands, including default-blocking most `gh` usage, blocking git force-push variants, and blocking `terraform apply`.
+- Added a project-local pi extension at `.pi/extensions/block-commands.ts` to block configured shell commands, including default-blocking most `gh` usage, blocking destructive git push variants, blocking `terraform apply` and `terraform destroy`, and blocking `kubectl apply`.
 
 ### Changed
 

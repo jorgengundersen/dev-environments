@@ -18,15 +18,20 @@ What it does:
   - `gh pr list`
   - `gh pr view`
   - `gh release list`
-- allows `git` generally, but blocks force-push variants:
+- allows `git` generally, but blocks destructive push variants:
   - `git push -f`
   - `git push --force`
   - `git push --force-with-lease`
   - `git push --force-if-includes`
   - `git push --mirror`
+  - `git push --delete <branch>`
+  - `git push <remote> :<branch>`
   - `git push ... +<refspec>`
 - allows `terraform` generally, but blocks:
   - `terraform apply`
+  - `terraform destroy`
+- allows `kubectl` generally, but blocks:
+  - `kubectl apply`
 - applies to both:
   - LLM `bash` tool calls
   - user `!` / `!!` shell commands inside pi

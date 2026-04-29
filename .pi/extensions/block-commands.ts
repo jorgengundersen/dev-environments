@@ -70,19 +70,26 @@ const commandPolicies: CommandPolicy[] = [
     isAllowed: (match) => isAllowedGhCommand(match.argv),
   },
   {
-    name: "git-force-push-block",
+    name: "git-push-mutation-block",
     mode: "defaultAllow",
     executable: "git",
     summary:
-      "Allow git by default, but block git push force variants: -f, --force, --force-with-lease, --force-if-includes, --mirror, and +refspec forms.",
-    isBlocked: (match) => isBlockedGitForcePush(match.argv),
+      "Allow git by default, but block destructive git push variants: -f, --force, --force-with-lease, --force-if-includes, --mirror, --delete, :branch deletion refspecs, and +refspec forms.",
+    isBlocked: (match) => isBlockedGitPushMutation(match.argv),
   },
   {
-    name: "terraform-apply-block",
+    name: "terraform-apply-destroy-block",
     mode: "defaultAllow",
     executable: "terraform",
-    summary: "Allow terraform by default, but block terraform apply.",
-    isBlocked: (match) => isBlockedTerraformApply(match.argv),
+    summary: "Allow terraform by default, but block terraform apply and terraform destroy.",
+    isBlocked: (match) => isBlockedTerraformMutation(match.argv),
+  },
+  {
+    name: "kubectl-apply-block",
+    mode: "defaultAllow",
+    executable: "kubectl",
+    summary: "Allow kubectl by default, but block kubectl apply.",
+    isBlocked: (match) => isBlockedKubectlApply(match.argv),
   },
 ];
 
@@ -518,13 +525,27 @@ function isGitForceFlag(token: string): boolean {
   return /^-[^-]*f[^-]*$/.test(token);
 }
 
-function isBlockedGitForcePush(argv: string[]): boolean {
+function isGitDeletePushFlag(token: string): boolean {
+  return token === "--delete";
+}
+
+function isGitDeleteRefspec(token: string): boolean {
+  return /^:[^:]+$/.test(token);
+}
+
+function isBlockedGitPushMutation(argv: string[]): boolean {
   const gitArgs = stripGitGlobalOptions(argv.slice(1));
   if (gitArgs[0] !== "push") {
     return false;
   }
 
-  return gitArgs.slice(1).some((token) => isGitForceFlag(token) || token.startsWith("+"));
+  return gitArgs.slice(1).some(
+    (token) =>
+      isGitForceFlag(token) ||
+      isGitDeletePushFlag(token) ||
+      isGitDeleteRefspec(token) ||
+      token.startsWith("+"),
+  );
 }
 
 function stripTerraformGlobalOptions(args: string[]): string[] {
@@ -557,9 +578,62 @@ function stripTerraformGlobalOptions(args: string[]): string[] {
   return args.slice(i);
 }
 
-function isBlockedTerraformApply(argv: string[]): boolean {
+function isBlockedTerraformMutation(argv: string[]): boolean {
   const terraformArgs = stripTerraformGlobalOptions(argv.slice(1));
-  return terraformArgs[0] === "apply";
+  return terraformArgs[0] === "apply" || terraformArgs[0] === "destroy";
+}
+
+function stripKubectlGlobalOptions(args: string[]): string[] {
+  let i = 0;
+  while (i < args.length) {
+    const token = args[i]!;
+
+    if (token === "--") {
+      return args.slice(i + 1);
+    }
+
+    if (
+      token === "-n" ||
+      token === "--namespace" ||
+      token === "--context" ||
+      token === "--cluster" ||
+      token === "--user" ||
+      token === "--kubeconfig" ||
+      token === "--request-timeout" ||
+      token === "-f" ||
+      token === "--filename"
+    ) {
+      i += 2;
+      continue;
+    }
+
+    if (
+      token.startsWith("--namespace=") ||
+      token.startsWith("--context=") ||
+      token.startsWith("--cluster=") ||
+      token.startsWith("--user=") ||
+      token.startsWith("--kubeconfig=") ||
+      token.startsWith("--request-timeout=") ||
+      token.startsWith("--filename=")
+    ) {
+      i += 1;
+      continue;
+    }
+
+    if (token.startsWith("-")) {
+      i += 1;
+      continue;
+    }
+
+    break;
+  }
+
+  return args.slice(i);
+}
+
+function isBlockedKubectlApply(argv: string[]): boolean {
+  const kubectlArgs = stripKubectlGlobalOptions(argv.slice(1));
+  return kubectlArgs[0] === "apply";
 }
 
 function findPolicyViolation(script: string, depth = 0): PolicyViolation | null {
@@ -627,8 +701,9 @@ function buildSystemPromptPolicyNote(): string {
   const lines = [
     "Shell command policy in this session:",
     `- gh commands are blocked by default. Allowed exceptions: ${ghAllowedCommandSummary}.`,
-    "- git is allowed by default, but git push force variants are blocked: -f, --force, --force-with-lease, --force-if-includes, --mirror, and +refspec forms.",
-    "- terraform is allowed by default, but terraform apply is blocked.",
+    "- git is allowed by default, but destructive git push variants are blocked: -f, --force, --force-with-lease, --force-if-includes, --mirror, --delete, :branch deletion refspecs, and +refspec forms.",
+    "- terraform is allowed by default, but terraform apply and terraform destroy are blocked.",
+    "- kubectl is allowed by default, but kubectl apply is blocked.",
     "- If a blocked command would be useful, explain that it is blocked instead of trying to run it.",
   ];
 

@@ -6,6 +6,10 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added
+
+- Added a project-local pi extension at `.pi/extensions/block-commands.ts` to block configured shell commands, including default-blocking most `gh` usage and blocking git force-push variants.
+
 ### Changed
 
 - `havn-session-prepare` no longer passes `--refresh` by default; enable it explicitly with `HAVN_HOME_MANAGER_REFRESH=1`.

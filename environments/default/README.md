@@ -53,7 +53,8 @@ What it does:
 
 - validates `USER` and `HOME`
 - resolves missing `USER` via `id -un`/`whoami`
-- builds `homeConfigurations.<target>.activationPackage` with `--refresh --impure` by default
+- builds `homeConfigurations.<target>.activationPackage` with `--impure` by default
+- adds `--refresh` only when `HAVN_HOME_MANAGER_REFRESH=1` (or another supported truthy value)
 - runs the activation script
 
 After activation, `devShells.default` attempts to source Home Manager session
@@ -80,7 +81,7 @@ Behavior controls:
 - disable prepare step: `HAVN_SKIP_HOME_MANAGER=1`
 - override target name: `HAVN_HOME_MANAGER_TARGET=<name>`
 - override flake source: `HAVN_HOME_MANAGER_FLAKE='<flake-ref>'`
-- override refresh behavior: `HAVN_HOME_MANAGER_REFRESH=0` to disable refresh (default: enabled)
+- enable refresh explicitly: `HAVN_HOME_MANAGER_REFRESH=1` to add `--refresh` (default: disabled)
 - control backup extension: `HAVN_HOME_MANAGER_BACKUP_EXT=<ext>` (default: `havn-backup`)
 - disable backups entirely: `HAVN_HOME_MANAGER_BACKUP_EXT=none`
 

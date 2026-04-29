@@ -83,11 +83,11 @@
                 default_flake_ref="devenv"
                 flake_ref="''${HAVN_HOME_MANAGER_FLAKE:-$default_flake_ref}"
                 backup_ext="''${HAVN_HOME_MANAGER_BACKUP_EXT:-havn-backup}"
-                refresh_flag="--refresh"
+                refresh_flag=""
 
-                case "''${HAVN_HOME_MANAGER_REFRESH:-1}" in
-                  0|false|FALSE|no|NO|off|OFF)
-                    refresh_flag=""
+                case "''${HAVN_HOME_MANAGER_REFRESH:-0}" in
+                  1|true|TRUE|yes|YES|on|ON)
+                    refresh_flag="--refresh"
                     ;;
                 esac
 

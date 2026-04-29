@@ -9,7 +9,7 @@ import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
  * - keep the policy easy to extend for other commands later
  * - block both LLM bash tool calls and user ! / !! shell commands
  * - default-block GitHub CLI (gh) except a small non-destructive allowlist
- * - default-allow git, but block force-push variants
+ * - default-allow git, but block destructive push variants
  *
  * Notes:
  * - Shell parsing here is intentionally best-effort. It handles common command
@@ -47,19 +47,127 @@ type CommandPolicy =
       isBlocked: (match: CommandMatch) => boolean;
     };
 
+type LeadingOptionSpec = {
+  stopTokens?: string[];
+  optionsWithArgument?: string[];
+  attachedValueOptions?: string[];
+};
+
 const MAX_RECURSION_DEPTH = 3;
 
-const ghAllowedCommandSummary = [
-  "gh --version",
-  "gh help",
-  "gh auth status",
-  "gh repo view",
-  "gh issue list",
-  "gh issue view",
-  "gh pr list",
-  "gh pr view",
-  "gh release list",
-].join(", ");
+const transparentWrappers = new Set(["command", "builtin", "noglob", "nocorrect", "time", "nohup"]);
+
+const shellExecutables = new Set(["bash", "sh", "dash", "zsh", "fish"]);
+
+const wrapperOptionSpecs: Record<string, LeadingOptionSpec> = {
+  sudo: {
+    optionsWithArgument: ["-u", "-g", "-h", "-p", "-C", "-T", "-r", "-t"],
+    attachedValueOptions: [
+      "--user",
+      "--group",
+      "--host",
+      "--prompt",
+      "--close-from",
+      "--command-timeout",
+      "--chdir",
+    ],
+  },
+  doas: {
+    optionsWithArgument: ["-u", "--user"],
+    attachedValueOptions: ["--user"],
+  },
+  nice: {
+    optionsWithArgument: ["-n", "--adjustment"],
+    attachedValueOptions: ["--adjustment"],
+  },
+  ionice: {
+    optionsWithArgument: ["-c", "-n", "-t", "-p", "-P", "--class", "--classdata", "--pid", "--pgid"],
+    attachedValueOptions: ["--class", "--classdata", "--pid", "--pgid"],
+  },
+  chrt: {
+    optionsWithArgument: ["-p", "-P", "-T", "-D", "--pid", "--max", "--sched-runtime", "--sched-deadline", "--sched-period"],
+    attachedValueOptions: ["--pid", "--max", "--sched-runtime", "--sched-deadline", "--sched-period"],
+  },
+  stdbuf: {
+    optionsWithArgument: ["-i", "-o", "-e"],
+  },
+  timeout: {
+    optionsWithArgument: ["-k", "-s", "--kill-after", "--signal"],
+    attachedValueOptions: ["--kill-after", "--signal"],
+  },
+};
+
+const ghAllowedCommandPrefixes = [
+  ["version"],
+  ["--version"],
+  ["help"],
+  ["--help"],
+  ["-h"],
+  ["auth", "status"],
+  ["repo", "view"],
+  ["issue", "list"],
+  ["issue", "view"],
+  ["pr", "list"],
+  ["pr", "view"],
+  ["release", "list"],
+] as const;
+
+const ghAllowedCommandSummary = ghAllowedCommandPrefixes.map((parts) => `gh ${parts.join(" ")}`).join(", ");
+
+const ghGlobalOptionSpec: LeadingOptionSpec = {
+  stopTokens: ["version", "--version", "help", "--help", "-h"],
+  optionsWithArgument: ["-R", "--repo", "--hostname"],
+  attachedValueOptions: ["--repo", "--hostname"],
+};
+
+const gitGlobalOptionSpec: LeadingOptionSpec = {
+  optionsWithArgument: [
+    "-c",
+    "-C",
+    "--git-dir",
+    "--work-tree",
+    "--namespace",
+    "--exec-path",
+    "--super-prefix",
+    "--config-env",
+  ],
+  attachedValueOptions: [
+    "--git-dir",
+    "--work-tree",
+    "--namespace",
+    "--exec-path",
+    "--super-prefix",
+    "--config-env",
+  ],
+};
+
+const terraformGlobalOptionSpec: LeadingOptionSpec = {
+  optionsWithArgument: ["-chdir"],
+  attachedValueOptions: ["-chdir"],
+};
+
+const kubectlGlobalOptionSpec: LeadingOptionSpec = {
+  optionsWithArgument: [
+    "-n",
+    "--namespace",
+    "--context",
+    "--cluster",
+    "--user",
+    "--kubeconfig",
+    "--request-timeout",
+    "-f",
+    "--filename",
+  ],
+  attachedValueOptions: [
+    "--namespace",
+    "--context",
+    "--cluster",
+    "--user",
+    "--kubeconfig",
+    "--request-timeout",
+    "--filename",
+  ],
+};
 
 const commandPolicies: CommandPolicy[] = [
   {
@@ -233,12 +341,15 @@ function isEnvAssignment(token: string): boolean {
   return /^[A-Za-z_][A-Za-z0-9_]*=/.test(token);
 }
 
-function unwrapOptionWrapper(
-  tokens: string[],
-  optionsWithArgument: string[] = [],
-  longOptionsWithArgument: string[] = [],
-): string[] {
-  const optionsWithArgumentSet = new Set(optionsWithArgument);
+function normalizeExecutable(token: string): string {
+  const parts = token.split(/[\\/]/).filter(Boolean);
+  return parts.at(-1) ?? token;
+}
+
+function stripLeadingOptions(tokens: string[], spec: LeadingOptionSpec = {}): string[] {
+  const stopTokens = new Set(spec.stopTokens ?? []);
+  const optionsWithArgument = new Set(spec.optionsWithArgument ?? []);
+  const attachedValueOptions = spec.attachedValueOptions ?? [];
   let i = 0;
 
   while (i < tokens.length) {
@@ -248,12 +359,16 @@ function unwrapOptionWrapper(
       return tokens.slice(i + 1);
     }
 
-    if (optionsWithArgumentSet.has(token)) {
+    if (stopTokens.has(token)) {
+      return tokens.slice(i);
+    }
+
+    if (optionsWithArgument.has(token)) {
       i += 2;
       continue;
     }
 
-    if (longOptionsWithArgument.some((option) => token.startsWith(`${option}=`))) {
+    if (attachedValueOptions.some((option) => token.startsWith(`${option}=`))) {
       i += 1;
       continue;
     }
@@ -303,55 +418,30 @@ function unwrapLeadingWrappers(tokens: string[]): string[] | null {
   let remaining = [...tokens];
 
   while (remaining.length > 0) {
-    if (isEnvAssignment(remaining[0]!)) {
+    const head = remaining[0]!;
+
+    if (isEnvAssignment(head)) {
       remaining = remaining.slice(1);
       continue;
     }
 
-    switch (remaining[0]) {
-      case "env":
-        remaining = unwrapEnv(remaining.slice(1));
-        continue;
-      case "command":
-      case "builtin":
-      case "noglob":
-      case "nocorrect":
-      case "time":
-      case "nohup":
-        remaining = remaining.slice(1);
-        continue;
-      case "sudo":
-        remaining = unwrapOptionWrapper(remaining.slice(1), ["-u", "-g", "-h", "-p", "-C", "-T", "-r", "-t"], [
-          "--user",
-          "--group",
-          "--host",
-          "--prompt",
-          "--close-from",
-          "--command-timeout",
-          "--chdir",
-        ]);
-        continue;
-      case "doas":
-        remaining = unwrapOptionWrapper(remaining.slice(1), ["-u"], ["--user"]);
-        continue;
-      case "nice":
-        remaining = unwrapOptionWrapper(remaining.slice(1), ["-n"], ["--adjustment"]);
-        continue;
-      case "ionice":
-        remaining = unwrapOptionWrapper(remaining.slice(1), ["-c", "-n", "-t", "-p", "-P"], ["--class", "--classdata", "--pid", "--pgid"]);
-        continue;
-      case "chrt":
-        remaining = unwrapOptionWrapper(remaining.slice(1), ["-p", "-P", "-T", "-D"], ["--pid", "--max", "--sched-runtime", "--sched-deadline", "--sched-period"]);
-        continue;
-      case "stdbuf":
-        remaining = unwrapOptionWrapper(remaining.slice(1), ["-i", "-o", "-e"], []);
-        continue;
-      case "timeout":
-        remaining = unwrapOptionWrapper(remaining.slice(1), ["-k", "-s", "--kill-after", "--signal"], []);
-        continue;
-      default:
-        return remaining.length > 0 ? remaining : null;
+    if (head === "env") {
+      remaining = unwrapEnv(remaining.slice(1));
+      continue;
     }
+
+    if (transparentWrappers.has(head)) {
+      remaining = remaining.slice(1);
+      continue;
+    }
+
+    const wrapperSpec = wrapperOptionSpecs[head];
+    if (wrapperSpec) {
+      remaining = stripLeadingOptions(remaining.slice(1), wrapperSpec);
+      continue;
+    }
+
+    return remaining.length > 0 ? remaining : null;
   }
 
   return remaining.length > 0 ? remaining : null;
@@ -365,14 +455,14 @@ function extractCommandMatch(segment: string): CommandMatch | null {
   }
 
   return {
-    executable: argv[0]!,
+    executable: normalizeExecutable(argv[0]!),
     argv,
     segment,
   };
 }
 
 function extractNestedShellCommand(match: CommandMatch): string | null {
-  if (!["bash", "sh", "dash", "zsh", "fish"].includes(match.executable)) {
+  if (!shellExecutables.has(match.executable)) {
     return null;
   }
 
@@ -402,41 +492,7 @@ function extractNestedShellCommand(match: CommandMatch): string | null {
   return null;
 }
 
-function stripGhGlobalOptions(args: string[]): string[] {
-  let i = 0;
-  while (i < args.length) {
-    const token = args[i]!;
-
-    if (token === "--") {
-      return args.slice(i + 1);
-    }
-
-    if (token === "version" || token === "--version" || token === "help" || token === "--help" || token === "-h") {
-      return args.slice(i);
-    }
-
-    if (token === "-R" || token === "--repo" || token === "--hostname") {
-      i += 2;
-      continue;
-    }
-
-    if (token.startsWith("--repo=") || token.startsWith("--hostname=")) {
-      i += 1;
-      continue;
-    }
-
-    if (token.startsWith("-")) {
-      i += 1;
-      continue;
-    }
-
-    break;
-  }
-
-  return args.slice(i);
-}
-
-function matchesPrefix(actual: string[], expected: string[]): boolean {
+function matchesPrefix(actual: readonly string[], expected: readonly string[]): boolean {
   if (actual.length < expected.length) {
     return false;
   }
@@ -445,68 +501,12 @@ function matchesPrefix(actual: string[], expected: string[]): boolean {
 }
 
 function isAllowedGhCommand(argv: string[]): boolean {
-  const commandPath = stripGhGlobalOptions(argv.slice(1));
-
-  return (
-    matchesPrefix(commandPath, ["version"]) ||
-    matchesPrefix(commandPath, ["--version"]) ||
-    matchesPrefix(commandPath, ["help"]) ||
-    matchesPrefix(commandPath, ["--help"]) ||
-    matchesPrefix(commandPath, ["-h"]) ||
-    matchesPrefix(commandPath, ["auth", "status"]) ||
-    matchesPrefix(commandPath, ["repo", "view"]) ||
-    matchesPrefix(commandPath, ["issue", "list"]) ||
-    matchesPrefix(commandPath, ["issue", "view"]) ||
-    matchesPrefix(commandPath, ["pr", "list"]) ||
-    matchesPrefix(commandPath, ["pr", "view"]) ||
-    matchesPrefix(commandPath, ["release", "list"])
-  );
+  const commandPath = stripLeadingOptions(argv.slice(1), ghGlobalOptionSpec);
+  return ghAllowedCommandPrefixes.some((prefix) => matchesPrefix(commandPath, prefix));
 }
 
 function stripGitGlobalOptions(args: string[]): string[] {
-  let i = 0;
-  while (i < args.length) {
-    const token = args[i]!;
-
-    if (token === "--") {
-      return args.slice(i + 1);
-    }
-
-    if (
-      token === "-c" ||
-      token === "-C" ||
-      token === "--git-dir" ||
-      token === "--work-tree" ||
-      token === "--namespace" ||
-      token === "--exec-path" ||
-      token === "--super-prefix" ||
-      token === "--config-env"
-    ) {
-      i += 2;
-      continue;
-    }
-
-    if (
-      token.startsWith("--git-dir=") ||
-      token.startsWith("--work-tree=") ||
-      token.startsWith("--namespace=") ||
-      token.startsWith("--exec-path=") ||
-      token.startsWith("--super-prefix=") ||
-      token.startsWith("--config-env=")
-    ) {
-      i += 1;
-      continue;
-    }
-
-    if (token.startsWith("-")) {
-      i += 1;
-      continue;
-    }
-
-    break;
-  }
-
-  return args.slice(i);
+  return stripLeadingOptions(args, gitGlobalOptionSpec);
 }
 
 function isGitForceFlag(token: string): boolean {
@@ -548,92 +548,44 @@ function isBlockedGitPushMutation(argv: string[]): boolean {
   );
 }
 
-function stripTerraformGlobalOptions(args: string[]): string[] {
-  let i = 0;
-  while (i < args.length) {
-    const token = args[i]!;
-
-    if (token === "--") {
-      return args.slice(i + 1);
-    }
-
-    if (token === "-chdir") {
-      i += 2;
-      continue;
-    }
-
-    if (token.startsWith("-chdir=")) {
-      i += 1;
-      continue;
-    }
-
-    if (token.startsWith("-")) {
-      i += 1;
-      continue;
-    }
-
-    break;
-  }
-
-  return args.slice(i);
-}
-
 function isBlockedTerraformMutation(argv: string[]): boolean {
-  const terraformArgs = stripTerraformGlobalOptions(argv.slice(1));
+  const terraformArgs = stripLeadingOptions(argv.slice(1), terraformGlobalOptionSpec);
   return terraformArgs[0] === "apply" || terraformArgs[0] === "destroy";
 }
 
-function stripKubectlGlobalOptions(args: string[]): string[] {
-  let i = 0;
-  while (i < args.length) {
-    const token = args[i]!;
-
-    if (token === "--") {
-      return args.slice(i + 1);
-    }
-
-    if (
-      token === "-n" ||
-      token === "--namespace" ||
-      token === "--context" ||
-      token === "--cluster" ||
-      token === "--user" ||
-      token === "--kubeconfig" ||
-      token === "--request-timeout" ||
-      token === "-f" ||
-      token === "--filename"
-    ) {
-      i += 2;
-      continue;
-    }
-
-    if (
-      token.startsWith("--namespace=") ||
-      token.startsWith("--context=") ||
-      token.startsWith("--cluster=") ||
-      token.startsWith("--user=") ||
-      token.startsWith("--kubeconfig=") ||
-      token.startsWith("--request-timeout=") ||
-      token.startsWith("--filename=")
-    ) {
-      i += 1;
-      continue;
-    }
-
-    if (token.startsWith("-")) {
-      i += 1;
-      continue;
-    }
-
-    break;
-  }
-
-  return args.slice(i);
+function isBlockedKubectlApply(argv: string[]): boolean {
+  const kubectlArgs = stripLeadingOptions(argv.slice(1), kubectlGlobalOptionSpec);
+  return kubectlArgs[0] === "apply";
 }
 
-function isBlockedKubectlApply(argv: string[]): boolean {
-  const kubectlArgs = stripKubectlGlobalOptions(argv.slice(1));
-  return kubectlArgs[0] === "apply";
+function evaluatePolicy(match: CommandMatch): PolicyViolation | null {
+  for (const policy of commandPolicies) {
+    if (match.executable !== policy.executable) {
+      continue;
+    }
+
+    if (policy.mode === "defaultBlock") {
+      if (!policy.isAllowed(match)) {
+        return {
+          policyName: policy.name,
+          reason: policy.summary,
+          segment: match.segment,
+        };
+      }
+
+      continue;
+    }
+
+    if (policy.isBlocked(match)) {
+      return {
+        policyName: policy.name,
+        reason: policy.summary,
+        segment: match.segment,
+      };
+    }
+  }
+
+  return null;
 }
 
 function findPolicyViolation(script: string, depth = 0): PolicyViolation | null {
@@ -647,34 +599,19 @@ function findPolicyViolation(script: string, depth = 0): PolicyViolation | null 
       continue;
     }
 
-    for (const policy of commandPolicies) {
-      if (match.executable !== policy.executable) {
-        continue;
-      }
-
-      if (policy.mode === "defaultBlock") {
-        if (!policy.isAllowed(match)) {
-          return {
-            policyName: policy.name,
-            reason: policy.summary,
-            segment,
-          };
-        }
-      } else if (policy.isBlocked(match)) {
-        return {
-          policyName: policy.name,
-          reason: policy.summary,
-          segment,
-        };
-      }
+    const directViolation = evaluatePolicy(match);
+    if (directViolation) {
+      return directViolation;
     }
 
     const nestedShellCommand = extractNestedShellCommand(match);
-    if (nestedShellCommand) {
-      const nestedViolation = findPolicyViolation(nestedShellCommand, depth + 1);
-      if (nestedViolation) {
-        return nestedViolation;
-      }
+    if (!nestedShellCommand) {
+      continue;
+    }
+
+    const nestedViolation = findPolicyViolation(nestedShellCommand, depth + 1);
+    if (nestedViolation) {
+      return nestedViolation;
     }
   }
 
@@ -698,16 +635,14 @@ function describePolicies(): string {
 }
 
 function buildSystemPromptPolicyNote(): string {
-  const lines = [
+  return [
     "Shell command policy in this session:",
     `- gh commands are blocked by default. Allowed exceptions: ${ghAllowedCommandSummary}.`,
     "- git is allowed by default, but destructive git push variants are blocked: -f, --force, --force-with-lease, --force-if-includes, --mirror, --delete, :branch deletion refspecs, and +refspec forms.",
     "- terraform is allowed by default, but terraform apply and terraform destroy are blocked.",
     "- kubectl is allowed by default, but kubectl apply is blocked.",
     "- If a blocked command would be useful, explain that it is blocked instead of trying to run it.",
-  ];
-
-  return lines.join("\n");
+  ].join("\n");
 }
 
 export default function (pi: ExtensionAPI) {
@@ -740,13 +675,14 @@ export default function (pi: ExtensionAPI) {
       return undefined;
     }
 
+    const message = formatBlockedMessage(violation);
     if (ctx.hasUI) {
-      ctx.ui.notify(formatBlockedMessage(violation), "warning");
+      ctx.ui.notify(message, "warning");
     }
 
     return {
       block: true,
-      reason: formatBlockedMessage(violation),
+      reason: message,
     };
   });
 

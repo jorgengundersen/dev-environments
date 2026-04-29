@@ -12,6 +12,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Changed
 
+- Refactored `.pi/extensions/block-commands.ts` for maintainability by centralizing command normalization, shared option stripping, and policy evaluation.
 - `havn-session-prepare` no longer passes `--refresh` by default; enable it explicitly with `HAVN_HOME_MANAGER_REFRESH=1`.
 
 ## [0.1.3] - 2026-04-27

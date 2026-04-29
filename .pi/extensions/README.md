@@ -61,5 +61,6 @@ It now also handles several common wrapper and indirection forms, such as:
 - `sudo git push --force ...`
 - `env ... git push --force ...`
 - `bash -lc 'git push --force ...'`
+- `/usr/bin/git push --force ...`
 
-It still cannot guarantee blocking for arbitrarily obfuscated shell evaluation patterns.
+It still cannot guarantee blocking for arbitrarily obfuscated shell evaluation patterns such as command substitution and `eval`-style execution.

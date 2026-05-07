@@ -74,29 +74,15 @@ in
 
               : "''${EDITOR:=nvim}"
               : "''${VISUAL:=nvim}"
-              : "''${CODEX_HOME:=$XDG_STATE_HOME/codex}"
-              : "''${CLAUDE_CONFIG_DIR:=$XDG_STATE_HOME/claude}"
-              : "''${COPILOT_HOME:=$XDG_STATE_HOME/copilot}"
-              : "''${COPILOT_CACHE_HOME:=$XDG_CACHE_HOME/copilot}"
-              : "''${PI_CODING_AGENT_DIR:=$XDG_STATE_HOME/pi/agent}"
-              : "''${GH_CONFIG_DIR:=$XDG_STATE_HOME/gh}"
 
               export XDG_CONFIG_HOME XDG_CACHE_HOME XDG_DATA_HOME XDG_STATE_HOME
               export EDITOR VISUAL
-              export CODEX_HOME CLAUDE_CONFIG_DIR COPILOT_HOME COPILOT_CACHE_HOME
-              export PI_CODING_AGENT_DIR GH_CONFIG_DIR
 
               for state_dir in \
                 "$XDG_CONFIG_HOME" \
                 "$XDG_CACHE_HOME" \
                 "$XDG_DATA_HOME" \
-                "$XDG_STATE_HOME" \
-                "$CODEX_HOME" \
-                "$CLAUDE_CONFIG_DIR" \
-                "$COPILOT_HOME" \
-                "$COPILOT_CACHE_HOME" \
-                "$PI_CODING_AGENT_DIR" \
-                "$GH_CONFIG_DIR"
+                "$XDG_STATE_HOME"
               do
                 if [ -n "$state_dir" ] && [ ! -d "$state_dir" ]; then
                   mkdir -p "$state_dir" >/dev/null 2>&1 || true

@@ -20,6 +20,7 @@ let
     "beads"
     "linters"
     "git"
+    "gh"
     "just"
     "glow"
     "typst"
@@ -78,11 +79,12 @@ in
               : "''${COPILOT_HOME:=$XDG_STATE_HOME/copilot}"
               : "''${COPILOT_CACHE_HOME:=$XDG_CACHE_HOME/copilot}"
               : "''${PI_CODING_AGENT_DIR:=$XDG_STATE_HOME/pi/agent}"
+              : "''${GH_CONFIG_DIR:=$XDG_STATE_HOME/gh}"
 
               export XDG_CONFIG_HOME XDG_CACHE_HOME XDG_DATA_HOME XDG_STATE_HOME
               export EDITOR VISUAL
               export CODEX_HOME CLAUDE_CONFIG_DIR COPILOT_HOME COPILOT_CACHE_HOME
-              export PI_CODING_AGENT_DIR
+              export PI_CODING_AGENT_DIR GH_CONFIG_DIR
 
               for state_dir in \
                 "$XDG_CONFIG_HOME" \
@@ -93,7 +95,8 @@ in
                 "$CLAUDE_CONFIG_DIR" \
                 "$COPILOT_HOME" \
                 "$COPILOT_CACHE_HOME" \
-                "$PI_CODING_AGENT_DIR"
+                "$PI_CODING_AGENT_DIR" \
+                "$GH_CONFIG_DIR"
               do
                 if [ -n "$state_dir" ] && [ ! -d "$state_dir" ]; then
                   mkdir -p "$state_dir" >/dev/null 2>&1 || true

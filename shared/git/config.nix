@@ -5,7 +5,6 @@ _: {
       devShells.git = pkgs.mkShell {
         packages = with pkgs; [
           git
-          gh
           delta
         ];
       };

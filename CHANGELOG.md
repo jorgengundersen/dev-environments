@@ -8,6 +8,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Added
 
+- Added a dedicated `shared/git/gh.nix` module for GitHub CLI packaging and Home Manager configuration, including `GH_CONFIG_DIR=$XDG_STATE_HOME/gh`.
 - Added a project-local pi extension at `.pi/extensions/block-commands.ts` to block configured shell commands, including default-blocking most `gh` usage, blocking destructive git push variants, blocking `terraform apply` and `terraform destroy`, and blocking `kubectl apply`.
 
 ### Changed

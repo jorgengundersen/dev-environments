@@ -18,6 +18,7 @@ let
     "pi"
     "dolt"
     "sqlite"
+    "duckdb"
     "beads"
     "linters"
     "git"

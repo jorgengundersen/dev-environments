@@ -17,6 +17,7 @@ let
     "copilot"
     "pi"
     "dolt"
+    "sqlite"
     "beads"
     "linters"
     "git"

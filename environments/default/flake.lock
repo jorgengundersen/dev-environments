@@ -1,25 +1,5 @@
 {
   "nodes": {
-    "afk": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs-unstable"
-        ]
-      },
-      "locked": {
-        "lastModified": 1776174967,
-        "narHash": "sha256-51DO2wG2pyXCTxFmD7LGHOqsGeI9weNWsNevNsTbysw=",
-        "owner": "jorgengundersen",
-        "repo": "afk",
-        "rev": "6c689bf33e316344e0a93604aed266199080b306",
-        "type": "github"
-      },
-      "original": {
-        "owner": "jorgengundersen",
-        "repo": "afk",
-        "type": "github"
-      }
-    },
     "blueprint": {
       "inputs": {
         "nixpkgs": [
@@ -244,7 +224,6 @@
     },
     "root": {
       "inputs": {
-        "afk": "afk",
         "flake-parts": "flake-parts",
         "home-manager": "home-manager",
         "import-tree": "import-tree",

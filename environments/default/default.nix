@@ -27,7 +27,6 @@ let
     "glow"
     "typst"
     "mermaid"
-    "afk"
     "opencode"
   ];
 in

@@ -6,15 +6,31 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-04
+
 ### Added
 
+- Added `bubblewrap` and `iputils`/`ping` to the shared core shell package set.
+- Added SQLite and DuckDB shared data shells and included them in the default environment.
 - Added a dedicated `shared/git/gh.nix` module for GitHub CLI packaging and Home Manager configuration, including `GH_CONFIG_DIR=$XDG_STATE_HOME/gh`.
 - Added a project-local pi extension at `.pi/extensions/block-commands.ts` to block configured shell commands, including default-blocking most `gh` usage, blocking destructive git push variants, blocking `terraform apply` and `terraform destroy`, and blocking `kubectl apply`.
+- Added project-map guidance and a lightweight beads issue-tracking snippet to `AGENTS.md` that points agents to `bd prime` for current workflow context.
 
 ### Changed
 
+- Updated the default environment baseline to NixOS/Home Manager 25.11 and split stable baseline packages from unstable tool packages.
+- Refactored the default environment to remove duplicated tool environment setup.
 - Refactored `.pi/extensions/block-commands.ts` for maintainability by centralizing command normalization, shared option stripping, and policy evaluation.
 - `havn-session-prepare` no longer passes `--refresh` by default; enable it explicitly with `HAVN_HOME_MANAGER_REFRESH=1`.
+- Replaced the vendored beads skill with lightweight `bd prime` guidance.
+
+### Fixed
+
+- Restored Home Manager Neovim activation compatibility on 25.11.
+
+### Removed
+
+- Removed the `afk` input, shared module, and default profile entry for now.
 
 ## [0.1.3] - 2026-04-27
 
@@ -65,7 +81,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Optional `apps.<system>.havn-session-prepare` startup hook for havn sessions.
 - Repository maintenance scripts and documented validation workflow.
 
-[Unreleased]: https://github.com/jorgengundersen/dev-environments/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/jorgengundersen/dev-environments/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.2.0
 [0.1.3]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.1.3
 [0.1.2]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.1.2
 [0.1.1]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.1.1

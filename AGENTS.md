@@ -1,6 +1,13 @@
 - use conventional commits
 - see @scripts/ for useful scripts
 
+## Issue tracking
+
+This project uses `bd` (beads) for issue tracking.
+
+- Run `bd prime` for beads workflow context and command guidance.
+- Use `bd ready`, `bd show <id>`, `bd update <id> --claim`, and `bd close <id>`.
+
 ## Project map
 
 - `README.md` — repository overview, quick start, versioning, and module-add workflow.

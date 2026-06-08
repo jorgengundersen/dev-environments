@@ -10,6 +10,7 @@ Composable development environments with shared Nix modules and environment-spec
   - environment composition (`default.nix`)
   - Home Manager assembly (`home.nix`, `home-modules.nix`)
   - default-only shell behavior (`bash.nix`)
+- `environments/monarch/` is the Monarch Alpha entrypoint for isolated local agent workspaces, including `monarch-session-prepare`.
 
 `environments/default/default.nix` includes a guard that fails with a clear error if the composed `defaultProfile` references a missing `devShells.<name>`.
 
@@ -43,6 +44,19 @@ nix develop "github:jorgengundersen/dev-environments/<commit-or-tag>?dir=environ
 ```
 
 See `docs/user-guide.md` for cross-repo usage patterns and how to create additional environment entrypoints.
+
+## Monarch Alpha
+
+Use the Monarch environment flake:
+
+```bash
+MONARCH_DEVENV_FLAKE="github:jorgengundersen/dev-environments?dir=environments/monarch"
+nix develop "$MONARCH_DEVENV_FLAKE"
+nix run "$MONARCH_DEVENV_FLAKE#monarch-session-prepare"
+nix flake check "$MONARCH_DEVENV_FLAKE"
+```
+
+Pin `MONARCH_DEVENV_FLAKE` to an immutable tag or commit for reproducible Monarch workspaces.
 
 ## Versioning
 

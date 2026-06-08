@@ -37,7 +37,7 @@ Modules must remain evaluation-safe across supported systems.
 
 Each environment is a self-contained subflake in `environments/<name>/`.
 
-Current environment:
+Current environments:
 
 - `environments/default/flake.nix`
 - `environments/default/default.nix`
@@ -45,6 +45,12 @@ Current environment:
 - `environments/default/home-modules.nix`
 - `environments/default/home.nix`
 - `environments/default/flake.lock`
+- `environments/monarch/flake.nix`
+- `environments/monarch/default.nix`
+- `environments/monarch/bash.nix`
+- `environments/monarch/home-modules.nix`
+- `environments/monarch/home.nix`
+- `environments/monarch/flake.lock`
 
 `environments/default/flake.nix` imports `shared/` via `import-tree` and composes outputs for that environment.
 
@@ -95,6 +101,19 @@ Remote usage:
 ```bash
 nix develop "github:jorgengundersen/dev-environments?dir=environments/default"
 ```
+
+Monarch Alpha usage:
+
+```bash
+MONARCH_DEVENV_FLAKE="github:jorgengundersen/dev-environments?dir=environments/monarch"
+nix develop "$MONARCH_DEVENV_FLAKE"
+nix run "$MONARCH_DEVENV_FLAKE#monarch-session-prepare"
+nix flake check "$MONARCH_DEVENV_FLAKE"
+```
+
+The Monarch environment must keep persistent tool state below XDG locations and
+provides non-overriding defaults for `PI_CODING_AGENT_DIR`, `CODEX_HOME`,
+`GH_CONFIG_DIR`, and `CLAUDE_CONFIG_DIR` below `$XDG_STATE_HOME`.
 
 ## Design Rules
 

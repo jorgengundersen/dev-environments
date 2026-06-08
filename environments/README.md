@@ -4,6 +4,11 @@ Environment entrypoints as self-contained flakes.
 
 ## Structure
 
+Current entrypoints:
+
+- `default/` — broad default development environment.
+- `monarch/` — Monarch Alpha agent-workspace environment with `monarch-session-prepare`.
+
 Each environment directory (for example `default/`) should contain:
 
 - `flake.nix` / `flake.lock`

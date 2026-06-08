@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-08
+
+### Added
+
+- Added the Monarch Alpha development environment under `environments/monarch`, including required agent-workspace tools, XDG state defaults, Home Manager wiring, and the `monarch-session-prepare` startup app.
+- Documented the Monarch flake reference and integration contract.
+
 ## [0.2.0] - 2026-06-04
 
 ### Added
@@ -81,7 +88,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Optional `apps.<system>.havn-session-prepare` startup hook for havn sessions.
 - Repository maintenance scripts and documented validation workflow.
 
-[Unreleased]: https://github.com/jorgengundersen/dev-environments/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/jorgengundersen/dev-environments/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.3.0
 [0.2.0]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.2.0
 [0.1.3]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.1.3
 [0.1.2]: https://github.com/jorgengundersen/dev-environments/releases/tag/v0.1.2

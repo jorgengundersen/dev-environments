@@ -32,7 +32,12 @@
       ];
 
       perSystem =
-        { pkgs, system, ... }:
+        {
+          config,
+          pkgs,
+          system,
+          ...
+        }:
         {
           _module.args.pkgsUnstable = inputs.nixpkgs-unstable.legacyPackages.${system};
 
@@ -87,7 +92,18 @@
 
                 export HOME="$home"
 
-                target="''${MONARCH_HOME_MANAGER_TARGET:-default}"
+                if [ -n "''${MONARCH_HOME_MANAGER_TARGET:-}" ]; then
+                  target="$MONARCH_HOME_MANAGER_TARGET"
+                else
+                  case "${system}" in
+                    aarch64-linux)
+                      target="$user@aarch64"
+                      ;;
+                    *)
+                      target="default"
+                      ;;
+                  esac
+                fi
                 flake_ref="''${MONARCH_HOME_MANAGER_FLAKE:-}"
                 backup_ext="''${MONARCH_HOME_MANAGER_BACKUP_EXT:-monarch-backup}"
                 tmp_flake_root=""
@@ -155,6 +171,26 @@
               ''
             );
           };
+
+          checks.monarch-session-prepare-target-selection =
+            pkgs.runCommand "monarch-session-prepare-target-selection" { }
+              ''
+                script="${config.apps.monarch-session-prepare.program}"
+
+                ${pkgs.gnugrep}/bin/grep -F 'target="$MONARCH_HOME_MANAGER_TARGET"' "$script" >/dev/null
+                ${pkgs.gnugrep}/bin/grep -F 'case "${system}" in' "$script" >/dev/null
+
+                case "${system}" in
+                  aarch64-linux)
+                    ${pkgs.gnugrep}/bin/grep -F 'target="$user@aarch64"' "$script" >/dev/null
+                    ;;
+                  x86_64-linux)
+                    ${pkgs.gnugrep}/bin/grep -F 'target="default"' "$script" >/dev/null
+                    ;;
+                esac
+
+                touch "$out"
+              '';
         };
     };
 }

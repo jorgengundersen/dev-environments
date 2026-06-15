@@ -40,13 +40,14 @@ non-overriding XDG defaults. Agent state resolves under `$XDG_STATE_HOME`:
 
 ## Session preparation controls
 
-`monarch-session-prepare` builds and runs `homeConfigurations.default.activationPackage`
-for the current `USER`/`HOME` with `--impure`. It is safe to rerun.
+`monarch-session-prepare` builds and runs a platform-appropriate Home Manager
+activation package for the current `USER`/`HOME` with `--impure`: `default` on
+`x86_64-linux`, and `${USER}@aarch64` on `aarch64-linux`. It is safe to rerun.
 
 Controls:
 
 - `MONARCH_SKIP_HOME_MANAGER=1` disables activation.
-- `MONARCH_HOME_MANAGER_TARGET=<target>` overrides the Home Manager target (`default`).
+- `MONARCH_HOME_MANAGER_TARGET=<target>` overrides the platform default Home Manager target.
 - `MONARCH_HOME_MANAGER_FLAKE=<flake-ref>` overrides the flake source.
 - `MONARCH_HOME_MANAGER_REFRESH=1` adds `--refresh` while building activation.
 - `MONARCH_HOME_MANAGER_BACKUP_EXT=<ext>` controls Home Manager backup extension (`monarch-backup`).

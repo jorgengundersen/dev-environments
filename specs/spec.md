@@ -111,6 +111,11 @@ nix run "$MONARCH_DEVENV_FLAKE#monarch-session-prepare"
 nix flake check "$MONARCH_DEVENV_FLAKE"
 ```
 
+`monarch-session-prepare` must choose a platform-appropriate Home Manager target
+by default: `homeConfigurations.default` on `x86_64-linux`, and
+`homeConfigurations.${USER}@aarch64` on `aarch64-linux`. An explicit
+`MONARCH_HOME_MANAGER_TARGET` always overrides this default.
+
 The Monarch environment must keep persistent tool state below XDG locations and
 provides non-overriding defaults for `PI_CODING_AGENT_DIR`, `CODEX_HOME`,
 `GH_CONFIG_DIR`, and `CLAUDE_CONFIG_DIR` below `$XDG_STATE_HOME`.

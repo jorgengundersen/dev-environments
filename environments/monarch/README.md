@@ -31,7 +31,11 @@ nix flake check "$MONARCH_DEVENV_FLAKE"
 ```
 
 The default shell provides the required Monarch user-space tools and sets
-non-overriding XDG defaults. Agent state resolves under `$XDG_STATE_HOME`:
+non-overriding XDG defaults. It includes Python 3.14 and a `monarch` wrapper
+that runs the live mounted source at `/workspace/monarch-alpha` without using
+the bind-mounted project `.venv` or uv-managed Python downloads.
+
+Agent state resolves under `$XDG_STATE_HOME`:
 
 - `PI_CODING_AGENT_DIR=$XDG_STATE_HOME/pi/agent`
 - `CODEX_HOME=$XDG_STATE_HOME/codex`

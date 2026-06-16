@@ -18,6 +18,33 @@ in
   perSystem =
     { self', pkgs, ... }:
     let
+      monarchProjectRoot = "/workspace/monarch-alpha";
+      monarchCli = pkgs.writeShellScriptBin "monarch" ''
+        set -euo pipefail
+
+        project_root="${monarchProjectRoot}"
+
+        if [ ! -d "$project_root" ]; then
+          echo "monarch: project root not found: $project_root" >&2
+          exit 1
+        fi
+
+        if [ -n "''${HOME:-}" ]; then
+          : "''${XDG_STATE_HOME:=$HOME/.local/state}"
+        fi
+
+        if [ -z "''${XDG_STATE_HOME:-}" ]; then
+          echo "monarch: XDG_STATE_HOME is unset and HOME is unavailable" >&2
+          exit 1
+        fi
+
+        export XDG_STATE_HOME
+        export UV_PROJECT_ENVIRONMENT="''${UV_PROJECT_ENVIRONMENT:-$XDG_STATE_HOME/monarch-alpha/venv}"
+        export UV_LINK_MODE="''${UV_LINK_MODE:-copy}"
+        export UV_PYTHON_DOWNLOADS=never
+
+        exec ${pkgs.uv}/bin/uv --project "$project_root" run --no-dev --python ${pkgs.python314}/bin/python3.14 monarch "$@"
+      '';
       missingShells = builtins.filter (name: !(builtins.hasAttr name self'.devShells)) defaultProfile;
     in
     {
@@ -38,6 +65,9 @@ in
               procps
               util-linux
               openssh
+              python314
+              uv
+              monarchCli
             ];
 
             shellHook = ''
@@ -98,5 +128,16 @@ in
           }
         else
           throw "monarch defaultProfile references missing devShells: ${builtins.concatStringsSep ", " missingShells}";
+
+      checks.monarch-cli-wrapper = pkgs.runCommand "monarch-cli-wrapper" { } ''
+        script="${monarchCli}/bin/monarch"
+
+        ${pkgs.gnugrep}/bin/grep -F '${monarchProjectRoot}' "$script" >/dev/null
+        ${pkgs.gnugrep}/bin/grep -F 'UV_PROJECT_ENVIRONMENT' "$script" >/dev/null
+        ${pkgs.gnugrep}/bin/grep -F 'UV_PYTHON_DOWNLOADS=never' "$script" >/dev/null
+        ${pkgs.coreutils}/bin/test -x "${pkgs.python314}/bin/python3.14"
+
+        touch "$out"
+      '';
     };
 }

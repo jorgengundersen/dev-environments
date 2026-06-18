@@ -130,6 +130,10 @@ The Monarch environment must keep persistent tool state below XDG locations and
 provides non-overriding defaults for `PI_CODING_AGENT_DIR`, `CODEX_HOME`,
 `GH_CONFIG_DIR`, and `CLAUDE_CONFIG_DIR` below `$XDG_STATE_HOME`.
 
+The Monarch environment must include `$HOME/.local/bin` on `PATH` so
+user-local tools and container-installed shortcuts remain available in
+interactive and Nix development shells.
+
 The Monarch environment must provide Python 3.14 and a `monarch` command on
 `PATH`. The `monarch` command must run the live mounted Monarch Alpha source at
 `/workspace/monarch-alpha`, store its uv project environment outside the

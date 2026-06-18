@@ -1,14 +1,43 @@
-_: {
+_:
+let
+  neovimPlugins =
+    vimPlugins: with vimPlugins; [
+      nvim-treesitter.withAllGrammars
+      nvim-lspconfig
+    ];
+
+  neovimLspConfig = ''
+    vim.lsp.enable({
+      'nil_ls',
+      'gopls',
+      'rust_analyzer',
+    })
+  '';
+in
+{
   perSystem =
     { pkgs, pkgsUnstable, ... }:
+    let
+      neovimRuntime = pkgsUnstable.wrapNeovimUnstable pkgsUnstable.neovim-unwrapped {
+        extraName = "-dev-env";
+        plugins = neovimPlugins pkgsUnstable.vimPlugins;
+        withRuby = true;
+        withPython3 = true;
+
+        # The default shell puts this Neovim before Home Manager's profile
+        # wrapper in PATH, but it still reads the Home Manager init.lua.
+        # Keep the plugin runtime available without replacing user config.
+        wrapRc = false;
+      };
+    in
     {
       devShells.neovim = pkgs.mkShell {
-        packages = with pkgs; [
-          pkgsUnstable.neovim
-          tree-sitter
-          nil
-          gopls
-          rust-analyzer
+        packages = [
+          neovimRuntime
+          pkgs.tree-sitter
+          pkgs.nil
+          pkgs.gopls
+          pkgs.rust-analyzer
         ];
       };
     };
@@ -24,16 +53,8 @@ _: {
         defaultEditor = true;
         withRuby = true;
         withPython3 = true;
-        plugins = with pkgs.vimPlugins; [
-          nvim-treesitter.withAllGrammars
-          nvim-lspconfig
-        ];
-        extraLuaConfig = ''
-          local lspconfig = require('lspconfig')
-          lspconfig.nil_ls.setup{}
-          lspconfig.gopls.setup{}
-          lspconfig.rust_analyzer.setup{}
-        '';
+        plugins = neovimPlugins pkgs.vimPlugins;
+        extraLuaConfig = neovimLspConfig;
       };
     };
 }

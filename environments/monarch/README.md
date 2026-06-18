@@ -31,9 +31,9 @@ nix flake check "$MONARCH_DEVENV_FLAKE"
 ```
 
 The default shell provides the required Monarch user-space tools and sets
-non-overriding XDG defaults. It includes Python 3.14 and a `monarch` wrapper
-that runs the live mounted source at `/workspace/monarch-alpha` without using
-the bind-mounted project `.venv` or uv-managed Python downloads.
+non-overriding XDG/editor defaults. It includes Python 3.14, Neovim, and a
+`monarch` wrapper that runs the live mounted source at `/workspace/monarch-alpha`
+without using the bind-mounted project `.venv` or uv-managed Python downloads.
 
 Agent state resolves under `$XDG_STATE_HOME`:
 
@@ -41,6 +41,8 @@ Agent state resolves under `$XDG_STATE_HOME`:
 - `CODEX_HOME=$XDG_STATE_HOME/codex`
 - `GH_CONFIG_DIR=$XDG_STATE_HOME/gh`
 - `CLAUDE_CONFIG_DIR=$XDG_STATE_HOME/claude`
+- `EDITOR=nvim`
+- `VISUAL=nvim`
 
 ## Session preparation controls
 

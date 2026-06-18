@@ -76,6 +76,12 @@ In `environments/default/home.nix`, `username` and `homeDirectory` are derived f
 
 For the default environment, baseline Bash behavior is declared in `shared/shell/bash.nix` for broad reuse, while default-specific Bash behavior is declared in `environments/default/bash.nix`.
 
+Editor modules that expose both a dev shell and Home Manager configuration must
+keep their shell runtime aligned with the Home Manager configuration. In
+particular, `devShells.neovim` must provide the Neovim plugins required by the
+Home Manager `init.lua`, because composed shells may put the dev-shell `nvim`
+before Home Manager's profile wrapper in `PATH`.
+
 Default Bash runtime injection contract:
 
 - `DEVENV_CONFIG_ROOT`: optional directory used to derive default source paths (default `${XDG_CONFIG_HOME:-$HOME/.config}/dev-environments`)
@@ -115,6 +121,10 @@ nix flake check "$MONARCH_DEVENV_FLAKE"
 by default: `homeConfigurations.default` on `x86_64-linux`, and
 `homeConfigurations.${USER}@aarch64` on `aarch64-linux`. An explicit
 `MONARCH_HOME_MANAGER_TARGET` always overrides this default.
+
+The Monarch environment must include Neovim in its default shell and Home
+Manager module selection, with `EDITOR`/`VISUAL` defaulting to `nvim` when not
+otherwise set.
 
 The Monarch environment must keep persistent tool state below XDG locations and
 provides non-overriding defaults for `PI_CODING_AGENT_DIR`, `CODEX_HOME`,

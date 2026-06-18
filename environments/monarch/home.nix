@@ -7,6 +7,7 @@ let
     "bash"
     "tmux"
     "prompt"
+    "neovim"
     "git"
     "gh"
     "pi"

@@ -6,6 +6,7 @@ let
     "tmux"
     "prompt"
     "python"
+    "neovim"
     "codex"
     "pi"
     "dolt"
@@ -103,7 +104,7 @@ in
                 : "''${CLAUDE_CONFIG_DIR:=$XDG_STATE_HOME/claude}"
               fi
 
-              : "''${EDITOR:=vi}"
+              : "''${EDITOR:=nvim}"
               : "''${VISUAL:=$EDITOR}"
 
               export XDG_CONFIG_HOME XDG_DATA_HOME XDG_CACHE_HOME XDG_STATE_HOME

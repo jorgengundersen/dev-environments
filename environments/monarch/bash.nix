@@ -11,6 +11,8 @@
     LESS = "-R -F -X";
   };
 
+  home.sessionPath = [ "$HOME/.local/bin" ];
+
   home.activation.createMonarchStateDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     mkdir -p \
       "${config.xdg.configHome}" \

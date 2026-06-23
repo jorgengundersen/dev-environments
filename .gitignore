@@ -5,12 +5,13 @@ result-*
 # Ignore automatically generated direnv output
 .direnv
 
-# Dolt database files (added by bd init)
+# Local database files
 .dolt/
 *.db
 
+# Local Beads workspace state (the bd CLI remains available via Nix shells)
+.beads/
+.beads-credential-key
+
 # Temporary files
 tmp/
-
-# Beads / Dolt files (added by bd init)
-.beads-credential-key

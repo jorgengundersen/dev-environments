@@ -89,14 +89,6 @@ Maintenance scripts live in `scripts/`.
 ./scripts/lock-environments.sh
 ```
 
-## Git Hooks
-
-`lefthook` runs pre-commit checks for staged files:
-
-- `nixfmt` (auto-format staged `*.nix` and restage)
-- `statix` and `deadnix` for Nix linting
-- `shellcheck` for staged `*.sh`
-
 ## Home Manager
 
 Build and activate Home Manager from the default environment flake:

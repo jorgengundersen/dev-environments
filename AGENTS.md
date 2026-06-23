@@ -21,5 +21,4 @@
   - `environments/default/` — default environment composition, Home Manager wiring, and default-only shell behavior.
 - `scripts/` — repository maintenance commands; see `scripts/README.md` before adding/changing scripts.
 - `.agents/skills/` — agent skill instructions for specialized repository workflows.
-- `.beads/` — persistent issue/task tracker storage; do not edit manually unless working on tracker internals.
 - `.pi/` — local Pi coding-agent configuration/extensions.

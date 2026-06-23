@@ -144,6 +144,14 @@ downloads. Its default uv project environment is:
 $XDG_STATE_HOME/monarch-alpha/venv
 ```
 
+## Repository Workflow Contract
+
+This repository must not require project-local Git hooks to commit, merge, or push.
+Validation is run explicitly through `scripts/` and Nix flake checks.
+
+This repository must not track project-local Beads state such as `.beads/`.
+The Beads CLI may still be exposed by Nix shells as an optional tool dependency.
+
 ## Design Rules
 
 1. Reusable modules belong in `shared/`.

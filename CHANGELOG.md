@@ -15,6 +15,10 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Wrapped the Neovim dev shell binary with the plugin runtime required by the Home Manager Neovim config so LSP configs are available when it shadows the Home Manager
   profile wrapper, and migrated the LSP setup to `vim.lsp.enable`.
 
+### Removed
+
+- Removed repository-tracked Beads state and project-local Git hook configuration while keeping the Beads CLI available through Nix shells.
+
 ## [0.3.0] - 2026-06-08
 
 ### Added

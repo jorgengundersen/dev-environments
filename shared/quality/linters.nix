@@ -8,7 +8,6 @@ _: {
           [
             shellcheck
             mdformat
-            lefthook
             bats
           ]
           ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [

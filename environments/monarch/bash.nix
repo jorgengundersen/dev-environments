@@ -11,7 +11,10 @@
     LESS = "-R -F -X";
   };
 
-  home.sessionPath = [ "$HOME/.local/bin" ];
+  home.sessionPath = [
+    "$MONARCH_REALM_ROOT/.monarch/bin"
+    "$HOME/.local/bin"
+  ];
 
   home.activation.createMonarchStateDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     mkdir -p \
